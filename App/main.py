@@ -4,6 +4,6 @@ from Comparison import *
 
 def main():
     print("La première fonction du programme lol")
-    # runComparison()
+    runComparison()
 
 main()
