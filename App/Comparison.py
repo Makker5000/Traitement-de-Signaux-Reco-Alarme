@@ -105,6 +105,52 @@ def compare_spectrograms(S1, S2):
     max_corr = np.max(correlation)
     return max_corr
 
+def determine_alarm_type(freqs, times, Sxx, score_alarm, threshold=50):
+    """
+    Analyse le spectrogramme pour déterminer le type d'alarme.
+    
+    Args:
+        freqs (ndarray): Fréquences du spectrogramme.
+        times (ndarray): Temps associés aux colonnes du spectrogramme.
+        Sxx (ndarray): Intensité spectrale (amplitudes) du spectrogramme.
+        score_alarm (float): Score du premier test (validation de l'alarme).
+        threshold (float): Seuil pour confirmer que c'est une alarme.
+        
+    Returns:
+        str: Type d'alarme détectée ("Hypoglycémie", "Hyperglycémie", ou "Indéterminé").
+    """
+    if score_alarm < threshold:
+        return "Ce n'est pas une alarme"
+
+    # Détection des fréquences dominantes dans chaque tranche temporelle
+    dominant_freqs = []
+    for col in range(Sxx.shape[1]):
+        # Identifier la fréquence avec l'amplitude maximale pour chaque tranche temporelle
+        dominant_idx = np.argmax(Sxx[:, col])
+        dominant_freqs.append(freqs[dominant_idx])
+
+    # Vérifier l'ordre des fréquences (montant ou descendant)
+    differences = np.diff(dominant_freqs)  # Différences entre les fréquences successives
+
+    # tolerance = 1e-3 # Valeur de tolérance de variation entre les valeurs
+    
+    # Déterminer la tendance générale
+    if np.all(differences > 0):  # Toutes les différences sont positives (montée)
+        return "Hyperglycémie"
+    elif np.all(differences < 0):  # Toutes les différences sont négatives (descente)
+        return "Hypoglycémie"
+    else:
+        # Analyse des tendances générales (majorité montante ou descendante)
+        upward_trend = np.sum(differences > 0)
+        downward_trend = np.sum(differences < 0)
+        
+        if upward_trend > downward_trend:
+            return "Hyperglycémie"
+        elif downward_trend > upward_trend:
+            return "Hypoglycémie"
+        else:
+            return "Indéterminé"
+
 def runComparison():
     # Chargement des fichiers de sons d'alarme Hypo et Hyper
     rate_hypo, alarm_hypo = load_audio(alarme_hypo)
@@ -128,6 +174,7 @@ def runComparison():
 
     # Calcul des scores de similarité
     score_hypo, score_hyper = calculate_similarity(spectrum_hypo, spectrum_hyper, spectrum_test)
+    score_alarm = max(score_hypo, score_hyper) # est égal à score_hypo et/ou score_hyper
 
     # Calcul des spectrogrammes
     freqs_hypo_s, times_hypo, Sxx_hypo = compute_spectrogram(alarm_hypo, rate_hypo)
@@ -139,20 +186,25 @@ def runComparison():
     score_spectro_hyper = compare_spectrograms(Sxx_hyper, Sxx_test)
 
     # Détermination du type d'alarme
-    if score_hypo > score_hyper and score_hypo > 50:  # Ajuster le seuil selon les besoins
-        result = "Hypoglycémie"
-    elif score_hyper > score_hypo and score_hyper > 50:
-        result = "Hyperglycémie"
+    if score_hypo > 50 and score_hyper > 50 :
+        isAlarm_result = "C'est une alarme"
     else:
-        result = "Indéterminé"
+        isAlarm_result = "Ce n'est pas une alarme"
+
+    # Deuxième test : analyse temporelle (spectrogramme)
+    # f_test, t_test, Sxx_test = spectrogram(test_alarm, fs=rate_test, nperseg=1024)
+    # alarm_type = determine_alarm_type(f_test, t_test, Sxx_test, score_alarm, threshold=50)
+    alarm_type = determine_alarm_type(freqs_test_s, times_test, Sxx_test, score_alarm, threshold=50)
+
 
     print(f"Score spectre Hypoglycémie : {score_hypo:.2f}%")
     print(f"Score spectre Hyperglycémie : {score_hyper:.2f}%")
     print(f"Score spectrogramme Hypoglycémie : {score_spectro_hypo:.2f}")
     print(f"Score spectrogramme Hyperglycémie : {score_spectro_hyper:.2f}")
-    print(f"Résultat final : {result}")
+    print(f"Alarme ou non ? : {isAlarm_result}")
+    print(f"Type d'alarme : {alarm_type}")
 
-    # # (Optionnel) Visualisation des spectres pour vérifier les similarités
+    # (Optionnel) Visualisation des spectres pour vérifier les similarités
     # Affichage des spectres
     plt.figure(figsize=(12, 6))
     plt.plot(freqs_hypo, spectrum_hypo, label="Spectre Hypoglycémie", color='blue', alpha=0.7)
