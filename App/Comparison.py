@@ -45,18 +45,6 @@ def compute_fft(signal, rate, n_points=None):
     #  L'élément à "//2" donc à la moitié n'est PAS inclus.
     return freqs[:len(freqs)//2], spectrum[:len(spectrum)//2]
 
-# Détection des pics dans le spectre
-# def detect_peaks(freqs, spectrum, threshold=0.1, distance=20):
-#     peaks, _ = find_peaks(spectrum, height=threshold * np.max(spectrum), distance=distance)
-#     peak_freqs = freqs[peaks]
-#     return peak_freqs
-
-# Calcul de similarité en utilisant les fréquences dominantes
-# def calculate_peak_similarity(peaks_ref, peaks_test):
-#     shared_peaks = np.intersect1d(peaks_ref, peaks_test, assume_unique=True)
-#     similarity = len(shared_peaks) / max(len(peaks_ref), len(peaks_test))
-#     return similarity * 100
-
 # Fonction pour corriger le décalage spectral (pitch shift)
 def align_spectra(ref_spectrum, test_spectrum, freqs_ref, freqs_test):
     # Identifiez le pic principal dans chaque spectre
@@ -99,10 +87,23 @@ def calculate_similarity(reference_1, reference_2, test_signal):
     score_1 = 0.4 * similarity_euclidean_1 + 0.4 * similarity_cosine_1 + 0.2 * correlation_1
     score_2 = 0.4 * similarity_euclidean_2 + 0.4 * similarity_cosine_2 + 0.2 * correlation_2
 
-    # Tester de faire une corrélation sur base d'un Spectrogram de mon Signal.
-    # La STFT est une fonction utilisée justement lorsqu'on fait un Spectrogram.
-
     return score_1 * 100, score_2 * 100  # Pourcentage de ressemblance
+
+# Fonction pour calculer un spectrogramme
+def compute_spectrogram(signal, rate, nperseg=256):
+    freqs, times, Sxx = spectrogram(signal, fs=rate, nperseg=nperseg)
+    Sxx = 10 * np.log10(Sxx + 1e-10)  # Échelle en dB
+    return freqs, times, Sxx
+
+# Fonction pour comparer des spectrogrammes
+def compare_spectrograms(S1, S2):
+    # Normaliser les spectrogrammes
+    S1_norm = S1 / np.linalg.norm(S1)
+    S2_norm = S2 / np.linalg.norm(S2)
+    # Corrélation croisée
+    correlation = correlate(S1_norm.flatten(), S2_norm.flatten(), mode='valid')
+    max_corr = np.max(correlation)
+    return max_corr
 
 def runComparison():
     # Chargement des fichiers de sons d'alarme Hypo et Hyper
@@ -122,26 +123,22 @@ def runComparison():
     freqs_hyper, spectrum_hyper = compute_fft(alarm_hyper, rate_hyper, n_points=n_points)
     freqs_test, spectrum_test = compute_fft(test_alarm, rate_test, n_points=n_points)
 
-    # Détection des pics dans les spectres
-    # peaks_hypo = detect_peaks(freqs_hypo, spectrum_hypo)
-    # peaks_hyper = detect_peaks(freqs_hyper, spectrum_hyper)
-    # peaks_test = detect_peaks(freqs_test, spectrum_test)
-
-    # # Similarité basée sur les pics
-    # peak_similarity_hypo = calculate_peak_similarity(peaks_hypo, peaks_test)
-    # peak_similarity_hyper = calculate_peak_similarity(peaks_hyper, peaks_test)
-
     # Correction de pitch sur le spectre de test
     spectrum_test = align_spectra(spectrum_hypo, spectrum_test, freqs_hypo, freqs_test)
 
     # Calcul des scores de similarité
     score_hypo, score_hyper = calculate_similarity(spectrum_hypo, spectrum_hyper, spectrum_test)
 
-    # Pondération des résultats
-    # combined_score_hypo = 0.6 * score_hypo + 0.4 * peak_similarity_hypo
-    # combined_score_hyper = 0.6 * score_hyper + 0.4 * peak_similarity_hyper
+    # Calcul des spectrogrammes
+    freqs_hypo_s, times_hypo, Sxx_hypo = compute_spectrogram(alarm_hypo, rate_hypo)
+    freqs_hyper_s, times_hyper, Sxx_hyper = compute_spectrogram(alarm_hyper, rate_hyper)
+    freqs_test_s, times_test, Sxx_test = compute_spectrogram(test_alarm, rate_test)
 
-    # # Détermination du type d'alarme
+    # Similarité des spectrogrammes
+    score_spectro_hypo = compare_spectrograms(Sxx_hypo, Sxx_test)
+    score_spectro_hyper = compare_spectrograms(Sxx_hyper, Sxx_test)
+
+    # Détermination du type d'alarme
     if score_hypo > score_hyper and score_hypo > 50:  # Ajuster le seuil selon les besoins
         result = "Hypoglycémie"
     elif score_hyper > score_hypo and score_hyper > 50:
@@ -149,21 +146,11 @@ def runComparison():
     else:
         result = "Indéterminé"
 
-    # if combined_score_hypo > combined_score_hyper and combined_score_hypo > 50:
-    #     result = "Hypoglycémie"
-    # elif combined_score_hyper > combined_score_hypo and combined_score_hyper > 50:
-    #     result = "Hyperglycémie"
-    # else:
-    #     result = "Indéterminé"
-
-    # Affichage des résultats
-    print(f"Score de similarité avec l'alarme Hypoglycémie : {score_hypo:.2f}%  OU {score_hypo}")
-    print(f"Score de similarité avec l'alarme Hyperglycémie : {score_hyper:.2f}% OU {score_hyper}")
-    print(f"Résultat de la classification : {result}")
-
-    # print(f"Score de similarité avec l'alarme Hypoglycémie : {combined_score_hypo:.2f}%")
-    # print(f"Score de similarité avec l'alarme Hyperglycémie : {combined_score_hyper:.2f}%")
-    # print(f"Résultat de la classification : {result}")
+    print(f"Score spectre Hypoglycémie : {score_hypo:.2f}%")
+    print(f"Score spectre Hyperglycémie : {score_hyper:.2f}%")
+    print(f"Score spectrogramme Hypoglycémie : {score_spectro_hypo:.2f}")
+    print(f"Score spectrogramme Hyperglycémie : {score_spectro_hyper:.2f}")
+    print(f"Résultat final : {result}")
 
     # # (Optionnel) Visualisation des spectres pour vérifier les similarités
     # Affichage des spectres
@@ -175,4 +162,27 @@ def runComparison():
     plt.ylabel("Amplitude")
     plt.legend()
     plt.title("Comparaison des spectres de fréquence")
+    plt.show()
+
+    plt.figure(figsize=(18, 6))
+    plt.subplot(1, 3, 1)
+    plt.pcolormesh(times_hypo, freqs_hypo_s, Sxx_hypo, shading='gouraud')
+    plt.title("Spectrogramme Hypoglycémie")
+    plt.ylabel("Fréquence (Hz)")
+    plt.xlabel("Temps (s)")
+    plt.colorbar()
+
+    plt.subplot(1, 3, 2)
+    plt.pcolormesh(times_hyper, freqs_hyper_s, Sxx_hyper, shading='gouraud')
+    plt.title("Spectrogramme Hyperglycémie")
+    plt.xlabel("Temps (s)")
+    plt.colorbar()
+
+    plt.subplot(1, 3, 3)
+    plt.pcolormesh(times_test, freqs_test_s, Sxx_test, shading='gouraud')
+    plt.title("Spectrogramme Test")
+    plt.xlabel("Temps (s)")
+    plt.colorbar()
+
+    plt.tight_layout()
     plt.show()
