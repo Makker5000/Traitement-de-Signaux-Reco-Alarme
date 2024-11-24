@@ -8,9 +8,7 @@ import matplotlib.pyplot as plt
 # PLAGES DE FRÉQUENCES
 #-------------------------------------------------------------------------------------------------
 
-# plage de fréquences fondamentales du son hyper : 1200-5600 Hz
-# plage de fréquences fondamentales du son hyper : 
-
+# plage de fréquences fondamentales du son hyper/hypo : 1200-5600 Hz
 
 #-------------------------------------------------------------------------------------------------
 # FONCTION DE CHARGEMENT DES FICHIERS AUDIOS
@@ -29,147 +27,133 @@ def load_audio(filename):
     return rate, data
 
 #-------------------------------------------------------------------------------------------------
-# SON ORIGINAL
-#-------------------------------------------------------------------------------------------------
-
-# Lecture du son Original
-# Importation et ouverture du fichier son
-
-#fe, signal_bruite = load_audio('../Ressources/Sons-avec-bruit/Hyper-chien.wav')
-fe, signal_bruite = load_audio('../Ressources/Sons-avec-bruit/Hyper-discussion_1.wav')
-#fe, signal_bruite = load_audio('../Ressources/Sons-de-Ref/Son-Alarme-Hyper-Clean.wav')
-signal_bruite = signal_bruite / np.max(np.abs(signal_bruite)) # Normaliser le signal si besoin (pour les fichiers wav int16)
-
-print(f"Fréquence d'échantillonnage: {fe} Hz")
-print(f"Nombre d'échantillons: {len(signal_bruite)}")
-
-#-------------------------------------------------------------------------------------------------
-# ÉCOUTE DU SON ORIGINALE + ANALYSE SPECTRALE
-#-------------------------------------------------------------------------------------------------
-
-# # Ecouter le son Original
-# sd.play(signal_bruite, fe)
-# sd.wait()
-# print(f"Lecture terminée")
-
-# Analyse spectrale pour identifier la fréquence du bruit
-t_original1 = np.arange(len(signal_bruite)) / fe
-TF_original = np.fft.fft(signal_bruite)
-frequencies = np.fft.fftfreq(len(TF_original), d=1/fe)
-
-# Affichage du spectre pour visualiser le signal bruité
-plt.figure(figsize=(10, 6))
-plt.plot(frequencies[:len(frequencies)//2], np.abs(TF_original[:len(frequencies)//2]))
-plt.title('Spectre de la chanson bruitée')
-plt.xlabel('Fréquence [Hz]')
-plt.ylabel('Amplitude')
-plt.grid(True)
-
-#-------------------------------------------------------------------------------------------------
-# FRÉQUENCES DE COUPURE POUR FILTRE PASS-BANDE
-#-------------------------------------------------------------------------------------------------
-
-#fc1, fc2 = 1000, 5600  # Hyper
-#fc1, fc2 =  # Hypo
-
-#-------------------------------------------------------------------------------------------------
-# FILTRE
-#-------------------------------------------------------------------------------------------------
-
-# FILTRE PASSE-BANDE pour conserver uniquement la plage de fréquences correspondant au son hyper/hypo
-
-def butter_bandpass(lowcut, highcut, fs, order=4):
-    nyquist = 0.5 * fs
-    low = lowcut / nyquist
-    high = highcut / nyquist
-    b, a = butter(order, [low, high], btype="band")
-    return b, a
-
-# Appliquer le filtre passe-bande
-lowcut = 3000  # Borne inférieure (1000 Hz)
-highcut = 5600  # Borne supérieure (5600 Hz)
-b, a = butter_bandpass(lowcut, highcut, fe, order=4)
-signal_filtre = filtfilt(b, a, signal_bruite)
-
-
-
-# FILTRE COUPE-BANDE pour éliminer les bruits parasites (ex : 400 Hz et 800 Hz)
-# fc_bruit1, fc_bruit2 = [1500, 3500]  # Fréquences à atténuer
-# for fc in [fc_bruit1, fc_bruit2]:
-#     b, a = butter(4, [fc - 50, fc + 50], btype="bandstop", fs=fe)
-#     signal_filtre = filtfilt(b, a, signal_filtre)
-
-
-# Affichage temporel le signal filtré
-plt.figure(figsize=(10, 6))
-plt.plot(signal_filtre)
-plt.title("Signal filtré (hyperglycémie isolée)")
-plt.xlabel("Temps [échantillons]")
-plt.ylabel("Amplitude")
-plt.grid(True)
-
-
-# Écouter le signal filtré
-# sd.play(signal_filtre, fe)
-# sd.wait()
-
-#Spectre fréqueniel du signal filtré(TF)
-TF_filtered = np.fft.fft(signal_filtre)
-frequencies_filtered = np.fft.fftfreq(len(TF_filtered), 1 / fe)
-
-#Analyse spectrale du signal filtré
-plt.figure(figsize=(10, 6))
-plt.plot(frequencies_filtered[:len(frequencies_filtered)//2], np.abs(TF_filtered[:len(TF_filtered)//2]))
-plt.title("Spectre après filtrage")
-plt.xlabel("Fréquence [Hz]")
-plt.ylabel("Amplitude")
-plt.grid(True)
-
-
-#-------------------------------------------------------------------------------------------------
 # EXTRACTION DU SON HYPER/HYPO
 #-------------------------------------------------------------------------------------------------
 
-# # Paramètres pour le fenêtrage
-# taille_fenetre = 1024  # Taille de la fenêtre FFT
-# overlap = 512  # Recouvrement entre fenêtres
-# frequencies, times, spectro = spectrogram(signal_filtre, fs=fe, nperseg=taille_fenetre, noverlap=overlap)
+def calculer_spectrogramme(signal, fe, taille_fenetre=1024, overlap=512):
+    """
+    Calcule le spectrogramme d'un signal.
+    
+    Parameters:
+        signal (array): Le signal audio.
+        fe (int): La fréquence d'échantillonnage.
+        taille_fenetre (int): La taille de chaque segment pour le spectrogramme.
+        overlap (int): Le recouvrement entre les fenêtres.
 
-# # Filtrer le spectrogramme pour ne garder que les fréquences hyperglycémiques
-# indices_freq_hyper = np.where((frequencies >= 3000) & (frequencies <= 5600))[0]
-# spectro_hyper = spectro[indices_freq_hyper, :]
+    Returns:
+        frequencies (array): Les fréquences du spectrogramme.
+        times (array): Les temps du spectrogramme.
+        spectro (array): Les valeurs du spectrogramme.
+    """
+    frequencies, times, spectro = spectrogram(signal, fs=fe, nperseg=taille_fenetre, noverlap=overlap)
+    return frequencies, times, spectro
 
-# # Calculer l'énergie moyenne pour chaque fenêtre temporelle dans la plage hyperglycémique
-# energie_hyper = np.mean(spectro_hyper, axis=0)
+def extraire_regions_specifiques(signal, fe, frequencies, times, spectro, plages_frequences, seuil_facteur=1.5):
+    """
+    Extrait les régions du signal correspondant à des plages de fréquences spécifiques.
+    
+    Parameters:
+        signal (array): Le signal filtré.
+        fe (int): La fréquence d'échantillonnage.
+        frequencies (array): Les fréquences du spectrogramme.
+        times (array): Les temps du spectrogramme.
+        spectro (array): Les valeurs du spectrogramme.
+        plages_frequences (list): Liste de tuples (f_min, f_max) des plages de fréquences spécifiques.
+        seuil_facteur (float): Facteur pour déterminer le seuil d'énergie significative.
 
-# # Détecter les fenêtres où l'énergie hyperglycémique est significative
-# seuil_energie = np.mean(energie_hyper) + 1.5 * np.std(energie_hyper)  # Seuil basé sur la moyenne et l'écart-type
-# fenetres_significatives = np.where(energie_hyper > seuil_energie)[0]
+    Returns:
+        signal_reduit (array): Le signal extrait correspondant aux plages spécifiques.
+        t_reduit (array): Les temps associés au signal extrait.
+    """
+    masque_temps = np.zeros(len(times), dtype=bool)
 
-# # Extraire le signal temporel correspondant
-# if len(fenetres_significatives) > 0:
-#     debut = int(times[fenetres_significatives[0]] * fe)
-#     fin = int(times[fenetres_significatives[-1]] * fe)
-#     signal_reduit = signal_filtre[debut:fin]
-#     t_reduit = t_original1[debut:fin]
-# else:
-#     print("Aucune région avec une énergie hyperglycémique significative détectée.")
-#     signal_reduit = None
-#     t_reduit = None
+    for f_min, f_max in plages_frequences:
+        indices_freq = np.where((frequencies >= f_min) & (frequencies <= f_max))[0]
+        energie_frequence = np.sum(spectro[indices_freq, :], axis=0)
+        seuil = np.mean(energie_frequence) + seuil_facteur * np.std(energie_frequence)
+        masque_temps |= (energie_frequence > seuil)
 
-# # Affichage du signal réduit
-# if signal_reduit is not None:
-#     plt.figure(figsize=(10, 6))
-#     plt.plot(t_reduit, signal_reduit)
-#     plt.title("Signal réduit basé sur les fréquences hyperglycémiques")
-#     plt.xlabel("Temps [s]")
-#     plt.ylabel("Amplitude")
-#     plt.grid(True)
+    indices_valides = np.where(masque_temps)[0]
+    if len(indices_valides) > 0:
+        debut = int(times[indices_valides[0]] * fe)
+        fin = int(times[indices_valides[-1]] * fe)
+        signal_reduit = signal[debut:fin]
+        t_reduit = np.arange(debut, fin) / fe
+        return signal_reduit, t_reduit
+    else:
+        print("Aucune région contenant les plages de fréquences spécifiées n'a été détectée.")
+        return None, None
 
-#     # Écoute du signal réduit
-#     sd.play(signal_reduit, fe)
-#     sd.wait()
+def afficher_signal(t, signal, titre="Signal"):
+    """
+    Affiche un signal en fonction du temps.
+    
+    Parameters:
+        t (array): Les temps du signal.
+        signal (array): Le signal à afficher.
+        titre (str): Le titre du graphique.
+    """
+    plt.figure(figsize=(10, 6))
+    plt.plot(t, signal)
+    plt.title(titre)
+    plt.xlabel("Temps [s]")
+    plt.ylabel("Amplitude")
+    plt.grid(True)
+    plt.show()
 
+def extraire_son_hyper_hypo(signal_filtre, fe):
+    """
+    Parameters:
+        signal_filtre (array): Le signal audio filtré.
+        fe (int): La fréquence d'échantillonnage.
 
+    Returns:
+        fe (int): La fréquence d'échantillonnage du signal réduit.
+        signal_reduit (array): Le signal extrait correspondant aux plages spécifiques.
+    """
+    plages_frequences = [
+        (3900, 4000), (4150, 4300), (4400, 4600), (4750, 5000), (5100, 5250),  # Hyperglycémique initiales
+        (1280, 1340), (1380, 1440), (1470, 1540), (1580, 1660), (1690, 1760)   # Nouvelles plages ajoutées
+    ]
 
-plt.show()
+    #Plages de fréquence dominantes au cas où les harmoniques en plus posent problème
+    # plages_frequences = [
+    # (3900, 4000),
+    # (4150, 4300),
+    # (4400, 4600),
+    # (4750, 5000),
+    # (5100, 5250)
+    # ]
+
+    taille_fenetre = 1024
+    overlap = 512
+
+    # Calcul du spectrogramme
+    frequencies, times, spectro = calculer_spectrogramme(signal_filtre, fe, taille_fenetre, overlap)
+
+    # Extraction des régions spécifiques
+    signal_reduit, _ = extraire_regions_specifiques(
+        signal_filtre, fe, frequencies, times, spectro, plages_frequences
+    )
+
+    # Retourner la fréquence d'échantillonnage et le signal réduit
+    return fe, signal_reduit
+
+# Appel de la fonction avec le signal filtré et sa fréquence d'échantillonnage
+frequence_echantillonnage, signal_reduit = extraire_son_hyper_hypo(signal_filtre, fe)
+
+# Affichage des résultats
+print(f"Fréquence d'échantillonnage : {frequence_echantillonnage} Hz")
+if signal_reduit is not None:
+    print(f"Signal réduit disponible avec {len(signal_reduit)} échantillons.")
+else:
+    print("Aucun signal réduit n'a été détecté.")
+
+# Écoute du son réduit
+if signal_reduit is not None:
+    print("Lecture du signal réduit...")
+    sd.play(signal_reduit, frequence_echantillonnage)
+    sd.wait()
+    print("Lecture terminée.")
+else:
+    print("Aucun signal réduit disponible pour la lecture.")
