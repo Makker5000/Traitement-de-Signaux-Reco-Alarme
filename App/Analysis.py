@@ -143,17 +143,17 @@ def extraire_son_hyper_hypo(signal_filtre, fe):
 frequence_echantillonnage, signal_reduit = extraire_son_hyper_hypo(signal_filtre, fe)
 
 # Affichage des résultats
-print(f"Fréquence d'échantillonnage : {frequence_echantillonnage} Hz")
-if signal_reduit is not None:
-    print(f"Signal réduit disponible avec {len(signal_reduit)} échantillons.")
-else:
-    print("Aucun signal réduit n'a été détecté.")
+# print(f"Fréquence d'échantillonnage : {frequence_echantillonnage} Hz")
+# if signal_reduit is not None:
+#     print(f"Signal réduit disponible avec {len(signal_reduit)} échantillons.")
+# else:
+#     print("Aucun signal réduit n'a été détecté.")
 
 # Écoute du son réduit
-if signal_reduit is not None:
-    print("Lecture du signal réduit...")
-    sd.play(signal_reduit, frequence_echantillonnage)
-    sd.wait()
-    print("Lecture terminée.")
-else:
-    print("Aucun signal réduit disponible pour la lecture.")
+# if signal_reduit is not None:
+#     print("Lecture du signal réduit...")
+#     sd.play(signal_reduit, frequence_echantillonnage)
+#     sd.wait()
+#     print("Lecture terminée.")
+# else:
+#     print("Aucun signal réduit disponible pour la lecture.")
