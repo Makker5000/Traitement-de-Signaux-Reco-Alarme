@@ -5,12 +5,15 @@ from scipy.signal import correlate, find_peaks, spectrogram
 import matplotlib.pyplot as plt
 from scipy.io.wavfile import read
 
+# -----------------------------------------------------
+# Assignation des chemins de fichiers des alarmes
+# -----------------------------------------------------
 alarme_hypo = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-Alarme-Hypo-Clean.wav"
 alarme_hyper = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-Alarme-Hyper-Clean.wav"
 # alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Test/Son-Alarme-Hypo-bruit-Strident-derriere.wav"
 # alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-Alarme-Hypo-Clean.wav"
 # alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-Alarme-Hyper-Clean.wav"
-alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Test/Son-Alarme-Hypo-Pitch-vers-le-Haut-100cents.wav"
+# alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Test/Son-Alarme-Hypo-Pitch-vers-le-Haut-100cents.wav"
 
 # On charge les fichiers audio
 def load_audio(filename):
@@ -151,11 +154,14 @@ def determine_alarm_type(freqs, times, Sxx, score_alarm, threshold=50):
         else:
             return "Indéterminé"
 
-def runComparison():
+# -----------------------------------------------------
+# Fonction principale du traitement de Comparaison
+# -----------------------------------------------------
+def runComparison(rate_test, test_alarm):
     # Chargement des fichiers de sons d'alarme Hypo et Hyper
     rate_hypo, alarm_hypo = load_audio(alarme_hypo)
     rate_hyper, alarm_hyper = load_audio(alarme_hyper)
-    rate_test, test_alarm = load_audio(alarme_test)
+    # rate_test, test_alarm = load_audio(alarme_test)
 
     # Vérification des taux d'échantillonnage
     if rate_hypo != rate_hyper or rate_hypo != rate_test:
@@ -206,35 +212,35 @@ def runComparison():
 
     # (Optionnel) Visualisation des spectres pour vérifier les similarités
     # Affichage des spectres
-    plt.figure(figsize=(12, 6))
-    plt.plot(freqs_hypo, spectrum_hypo, label="Spectre Hypoglycémie", color='blue', alpha=0.7)
-    plt.plot(freqs_hyper, spectrum_hyper, label="Spectre Hyperglycémie", color='red', alpha=0.7)
-    plt.plot(freqs_test, spectrum_test, label="Spectre Test", color='green', linestyle='--', alpha=0.7)
-    plt.xlabel("Fréquence (Hz)")
-    plt.ylabel("Amplitude")
-    plt.legend()
-    plt.title("Comparaison des spectres de fréquence")
-    plt.show()
+    # plt.figure(figsize=(12, 6))
+    # plt.plot(freqs_hypo, spectrum_hypo, label="Spectre Hypoglycémie", color='blue', alpha=0.7)
+    # plt.plot(freqs_hyper, spectrum_hyper, label="Spectre Hyperglycémie", color='red', alpha=0.7)
+    # plt.plot(freqs_test, spectrum_test, label="Spectre Test", color='green', linestyle='--', alpha=0.7)
+    # plt.xlabel("Fréquence (Hz)")
+    # plt.ylabel("Amplitude")
+    # plt.legend()
+    # plt.title("Comparaison des spectres de fréquence")
+    # plt.show()
 
-    plt.figure(figsize=(18, 6))
-    plt.subplot(1, 3, 1)
-    plt.pcolormesh(times_hypo, freqs_hypo_s, Sxx_hypo, shading='gouraud')
-    plt.title("Spectrogramme Hypoglycémie")
-    plt.ylabel("Fréquence (Hz)")
-    plt.xlabel("Temps (s)")
-    plt.colorbar()
+    # plt.figure(figsize=(18, 6))
+    # plt.subplot(1, 3, 1)
+    # plt.pcolormesh(times_hypo, freqs_hypo_s, Sxx_hypo, shading='gouraud')
+    # plt.title("Spectrogramme Hypoglycémie")
+    # plt.ylabel("Fréquence (Hz)")
+    # plt.xlabel("Temps (s)")
+    # plt.colorbar()
 
-    plt.subplot(1, 3, 2)
-    plt.pcolormesh(times_hyper, freqs_hyper_s, Sxx_hyper, shading='gouraud')
-    plt.title("Spectrogramme Hyperglycémie")
-    plt.xlabel("Temps (s)")
-    plt.colorbar()
+    # plt.subplot(1, 3, 2)
+    # plt.pcolormesh(times_hyper, freqs_hyper_s, Sxx_hyper, shading='gouraud')
+    # plt.title("Spectrogramme Hyperglycémie")
+    # plt.xlabel("Temps (s)")
+    # plt.colorbar()
 
-    plt.subplot(1, 3, 3)
-    plt.pcolormesh(times_test, freqs_test_s, Sxx_test, shading='gouraud')
-    plt.title("Spectrogramme Test")
-    plt.xlabel("Temps (s)")
-    plt.colorbar()
+    # plt.subplot(1, 3, 3)
+    # plt.pcolormesh(times_test, freqs_test_s, Sxx_test, shading='gouraud')
+    # plt.title("Spectrogramme Test")
+    # plt.xlabel("Temps (s)")
+    # plt.colorbar()
 
-    plt.tight_layout()
-    plt.show()
+    # plt.tight_layout()
+    # plt.show()
