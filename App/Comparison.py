@@ -161,16 +161,16 @@ def runComparison(rate_test, test_alarm):
     # Chargement des fichiers de sons d'alarme Hypo et Hyper
     rate_hypo, alarm_hypo = load_audio(alarme_hypo)
     rate_hyper, alarm_hyper = load_audio(alarme_hyper)
-    # rate_test, test_alarm = load_audio(alarme_test)
 
+    rate_hypo, rate_hyper = 48000, 48000
     # Vérification des taux d'échantillonnage
     if rate_hypo != rate_hyper or rate_hypo != rate_test:
         raise ValueError("Les fichiers audio doivent avoir le même taux d'échantillonnage.")
-    
-    # Nombre de points pour le calcul de la FFT
+
+    # Nombre de points pour la FFT
     n_points = min(len(alarm_hypo), len(alarm_hyper), len(test_alarm))
 
-    # Calcul des FFT pour chaque signal
+    # Calcul des FFT
     freqs_hypo, spectrum_hypo = compute_fft(alarm_hypo, rate_hypo, n_points=n_points)
     freqs_hyper, spectrum_hyper = compute_fft(alarm_hyper, rate_hyper, n_points=n_points)
     freqs_test, spectrum_test = compute_fft(test_alarm, rate_test, n_points=n_points)
@@ -180,67 +180,64 @@ def runComparison(rate_test, test_alarm):
 
     # Calcul des scores de similarité
     score_hypo, score_hyper = calculate_similarity(spectrum_hypo, spectrum_hyper, spectrum_test)
-    score_alarm = max(score_hypo, score_hyper) # est égal à score_hypo et/ou score_hyper
+    score_alarm = max(score_hypo, score_hyper)  # Score global pour validation
 
-    # Calcul des spectrogrammes
-    freqs_hypo_s, times_hypo, Sxx_hypo = compute_spectrogram(alarm_hypo, rate_hypo)
-    freqs_hyper_s, times_hyper, Sxx_hyper = compute_spectrogram(alarm_hyper, rate_hyper)
-    freqs_test_s, times_test, Sxx_test = compute_spectrogram(test_alarm, rate_test)
+    # Calcul des spectrogrammes avec ajustement dynamique
+    nperseg = min(len(test_alarm) // 10, 8192)  # Taille dynamique de la fenêtre
+    freqs_hypo_s, times_hypo, Sxx_hypo = compute_spectrogram(alarm_hypo, rate_hypo, nperseg=nperseg)
+    freqs_hyper_s, times_hyper, Sxx_hyper = compute_spectrogram(alarm_hyper, rate_hyper, nperseg=nperseg)
+    freqs_test_s, times_test, Sxx_test = compute_spectrogram(test_alarm, rate_test, nperseg=nperseg)
 
-    # Similarité des spectrogrammes
+    # Calcul des similarités des spectrogrammes
     score_spectro_hypo = compare_spectrograms(Sxx_hypo, Sxx_test)
     score_spectro_hyper = compare_spectrograms(Sxx_hyper, Sxx_test)
 
     # Détermination du type d'alarme
-    if score_hypo > 50 and score_hyper > 50 :
-        isAlarm_result = "C'est une alarme"
-    else:
-        isAlarm_result = "Ce n'est pas une alarme"
-
-    # Deuxième test : analyse temporelle (spectrogramme)
-    # f_test, t_test, Sxx_test = spectrogram(test_alarm, fs=rate_test, nperseg=1024)
-    # alarm_type = determine_alarm_type(f_test, t_test, Sxx_test, score_alarm, threshold=50)
     alarm_type = determine_alarm_type(freqs_test_s, times_test, Sxx_test, score_alarm, threshold=50)
 
-
+    # Affichage des résultats
     print(f"Score spectre Hypoglycémie : {score_hypo:.2f}%")
     print(f"Score spectre Hyperglycémie : {score_hyper:.2f}%")
     print(f"Score spectrogramme Hypoglycémie : {score_spectro_hypo:.2f}")
     print(f"Score spectrogramme Hyperglycémie : {score_spectro_hyper:.2f}")
-    print(f"Alarme ou non ? : {isAlarm_result}")
+    alarm_message = "C'est une alarme" if score_alarm > 50 else "Ce n'est pas une alarme"
+    print(f"Alarme ou non ? : {alarm_message}")
+
+
     print(f"Type d'alarme : {alarm_type}")
 
-    # (Optionnel) Visualisation des spectres pour vérifier les similarités
-    # Affichage des spectres
-    # plt.figure(figsize=(12, 6))
-    # plt.plot(freqs_hypo, spectrum_hypo, label="Spectre Hypoglycémie", color='blue', alpha=0.7)
-    # plt.plot(freqs_hyper, spectrum_hyper, label="Spectre Hyperglycémie", color='red', alpha=0.7)
-    # plt.plot(freqs_test, spectrum_test, label="Spectre Test", color='green', linestyle='--', alpha=0.7)
-    # plt.xlabel("Fréquence (Hz)")
-    # plt.ylabel("Amplitude")
-    # plt.legend()
-    # plt.title("Comparaison des spectres de fréquence")
-    # plt.show()
+    # Plot des spectres de fréquence
+    plt.figure(figsize=(12, 6))
+    plt.plot(freqs_hypo, spectrum_hypo, label="Spectre Hypoglycémie", color='blue', alpha=0.7)
+    plt.plot(freqs_hyper, spectrum_hyper, label="Spectre Hyperglycémie", color='red', alpha=0.7)
+    plt.plot(freqs_test, spectrum_test, label="Spectre Test", color='green', linestyle='--', alpha=0.7)
+    plt.xlabel("Fréquence (Hz)")
+    plt.ylabel("Amplitude")
+    plt.legend()
+    plt.title("Comparaison des spectres de fréquence")
+    plt.grid()
+    plt.show()
 
-    # plt.figure(figsize=(18, 6))
-    # plt.subplot(1, 3, 1)
-    # plt.pcolormesh(times_hypo, freqs_hypo_s, Sxx_hypo, shading='gouraud')
-    # plt.title("Spectrogramme Hypoglycémie")
-    # plt.ylabel("Fréquence (Hz)")
-    # plt.xlabel("Temps (s)")
-    # plt.colorbar()
+    # Plot des spectrogrammes
+    plt.figure(figsize=(18, 6))
+    plt.subplot(1, 3, 1)
+    plt.pcolormesh(times_hypo, freqs_hypo_s, Sxx_hypo, shading='gouraud', cmap='viridis')
+    plt.title("Spectrogramme Hypoglycémie")
+    plt.ylabel("Fréquence (Hz)")
+    plt.xlabel("Temps (s)")
+    plt.colorbar()
 
-    # plt.subplot(1, 3, 2)
-    # plt.pcolormesh(times_hyper, freqs_hyper_s, Sxx_hyper, shading='gouraud')
-    # plt.title("Spectrogramme Hyperglycémie")
-    # plt.xlabel("Temps (s)")
-    # plt.colorbar()
+    plt.subplot(1, 3, 2)
+    plt.pcolormesh(times_hyper, freqs_hyper_s, Sxx_hyper, shading='gouraud', cmap='viridis')
+    plt.title("Spectrogramme Hyperglycémie")
+    plt.xlabel("Temps (s)")
+    plt.colorbar()
 
-    # plt.subplot(1, 3, 3)
-    # plt.pcolormesh(times_test, freqs_test_s, Sxx_test, shading='gouraud')
-    # plt.title("Spectrogramme Test")
-    # plt.xlabel("Temps (s)")
-    # plt.colorbar()
+    plt.subplot(1, 3, 3)
+    plt.pcolormesh(times_test, freqs_test_s, Sxx_test, shading='gouraud', cmap='viridis')
+    plt.title("Spectrogramme Test")
+    plt.xlabel("Temps (s)")
+    plt.colorbar()
 
-    # plt.tight_layout()
-    # plt.show()
+    plt.tight_layout()
+    plt.show()

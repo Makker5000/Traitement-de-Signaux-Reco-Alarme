@@ -13,7 +13,7 @@ def load_wav(file_path):
     return fs, signal
 
 # Fonction pour appliquer un filtre passe-bande
-def apply_bandpass_filter(signal, fs, lowcut, highcut, order=4):
+def apply_bandpass_filter(signal, fs, lowcut, highcut, order=3):
     nyquist = 0.5 * fs
     low = lowcut / nyquist
     high = highcut / nyquist
@@ -33,7 +33,7 @@ def combine_bandpass_filters(signal, fs, lowcuts, highcuts):
 def Processing(chemin_fichier): # ,chemin_destination) : # ex : "../Ressources/Sons-De-Test/Hyper-chien.waw" && "../Output/son_traiter.waw"
     file_path = chemin_fichier  # Remplacez par le chemin du fichier à traiter
     fs, signal = load_wav(file_path)
-
+    fs = 48000
     # Définir les bandes de fréquences (domianntes)
     lowcuts = [1300, 1400, 1490, 1610, 1715, 3920.0, 4215.0, 4485.0, 4840.0, 5155.0]
     highcuts = [1320, 1420, 1510, 1630, 1735, 3950.0, 4245.0, 4515.0, 4870.0, 5185.0]

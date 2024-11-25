@@ -101,7 +101,7 @@ def afficher_signal(t, signal, titre="Signal"):
     plt.grid(True)
     plt.show()
 
-def extraire_son_hyper_hypo(signal_filtre, fe):
+def extraire_son_hyper_hypo(fe, signal_filtre):
     """
     Parameters:
         signal_filtre (array): Le signal audio filtré.
@@ -140,7 +140,7 @@ def extraire_son_hyper_hypo(signal_filtre, fe):
     return fe, signal_reduit
 
 # Appel de la fonction avec le signal filtré et sa fréquence d'échantillonnage
-frequence_echantillonnage, signal_reduit = extraire_son_hyper_hypo(signal_filtre, fe)
+    # CECI EST COMMENT ON APPEL LA FONCTION frequence_echantillonnage, signal_reduit = extraire_son_hyper_hypo(signal_filtre, fe)
 
 # Affichage des résultats
 # print(f"Fréquence d'échantillonnage : {frequence_echantillonnage} Hz")
