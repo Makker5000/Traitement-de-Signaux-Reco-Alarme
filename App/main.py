@@ -4,6 +4,6 @@ from Comparison import *
 
 def main():
     print("La première fonction du programme lol")
-    runComparison()
+    score_hypo, score_hyper, score_spectro_hypo, score_spectro_hyper, isAlarm_result, alarm_type = runComparison()
 
 main()

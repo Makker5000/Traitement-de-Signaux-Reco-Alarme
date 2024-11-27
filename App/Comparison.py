@@ -272,3 +272,5 @@ def runComparison():
 
     plt.tight_layout()
     plt.show()
+
+    return score_hypo, score_hyper, score_spectro_hypo, score_spectro_hyper, isAlarm_result, alarm_type
