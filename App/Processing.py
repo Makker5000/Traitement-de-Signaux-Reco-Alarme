@@ -19,8 +19,76 @@ Fonctions :
 """
 
 import numpy as np
-from scipy.signal import butter, filtfilt, resample_poly
+from scipy.fft import fft, fftfreq
+from scipy.signal import butter, filtfilt, resample_poly, spectrogram
 import soundfile as sf
+import matplotlib.pyplot as plt
+
+
+"""
+TESSSSSSSSSSSSSSSSSSSSSST
+"""
+
+def plot_signal_and_spectrogram(fs, signal, title, ax_time, ax_freq, ax_spec):
+    # Spectre temporel
+    t = np.arange(len(signal)) / fs
+    ax_time.plot(t, signal)
+    ax_time.set_title(f"Time Domain: {title}")
+    ax_time.set_xlabel("Time (s)")
+    ax_time.set_ylabel("Amplitude")
+    # Spectre fréquentiel
+    freqs = fftfreq(len(signal), 1/fs)
+    fft_values = np.abs(fft(signal))
+    ax_freq.plot(freqs[:len(freqs)//2], fft_values[:len(fft_values)//2])
+    ax_freq.set_title(f"Frequency Domain: {title}")
+    ax_freq.set_xlabel("Frequency (Hz)")
+    ax_freq.set_ylabel("Amplitude")
+    # Spectrogramme
+    f, t_spec, Sxx = spectrogram(signal, fs)
+    ax_spec.pcolormesh(t_spec, f, 10 * np.log10(Sxx), shading='gouraud')
+    ax_spec.set_title(f"Spectrogram: {title}")
+    ax_spec.set_xlabel("Time (s)")
+    ax_spec.set_ylabel("Frequency (Hz)")
+
+def compute_fft(signal, rate, n_points=None):
+    # Ajustement de la longueur du signal (padding ou troncature)
+    if n_points is not None:
+        if len(signal) > n_points:
+            signal = signal[:n_points]
+        elif len(signal) < n_points:
+            signal = np.pad(signal, (0, n_points - len(signal)), mode='constant')
+    
+    # Calcul de la transformée de Fourier
+    spectrum = np.abs(fft(signal))
+
+    # Fréquences associées
+    freqs = np.fft.fftfreq(len(spectrum), 1/rate)
+
+    # Prend uniquement la moitié positive du spectre
+    # "//2" veut dire que je divise par 2 via une division entière (donc les virgules décimales sont supprimées).
+    #  L'élément à "//2" donc à la moitié n'est PAS inclus.
+    return freqs[:len(freqs)//2], spectrum[:len(spectrum)//2]
+
+def align_spectra(ref_spectrum, test_spectrum, freqs_ref, freqs_test):
+    # Identifiez le pic principal dans chaque spectre
+    ref_peak_idx = np.argmax(ref_spectrum)
+    test_peak_idx = np.argmax(test_spectrum)
+    
+    # Trouvez le ratio de décalage de fréquence
+    shift_ratio = freqs_test[test_peak_idx] / freqs_ref[ref_peak_idx]
+
+    # Appliquez la correction sur le spectre de test
+    adjusted_test_spectrum = np.interp(
+        freqs_ref,  # Fréquences de référence
+        freqs_test / shift_ratio,  # Décalage des fréquences
+        test_spectrum,
+        left=0,
+        right=0,
+    )
+    return adjusted_test_spectrum
+"""
+FIN DE TEST
+"""
 
 def resample_audio(file_path, target_fs=44100):
     """
@@ -129,12 +197,19 @@ def process(file_path):
     """
     # Charger le signal et le re-échantilloné
     fs, signal = resample_audio(file_path, target_fs=44100)
-    
+   
+
+
     # Définir les bandes de fréquences
     lowcuts = [3900.0, 4200.0, 4470.0, 4830.0, 5145.0]
-    highcuts = [3950.0, 4250.0, 4520.0, 4880.0, 5195.0]
+    highcuts = [3950.0, 4250.0, 4520.0, 4880.0, 5300.0]
 
     # Appliquer les filtres
     filtered_signal = combine_bandpass_filters(signal, fs, lowcuts, highcuts)
 
+    fig, axes = plt.subplots(3, 2, figsize=(15, 10))
+    plot_signal_and_spectrogram(fs, signal, "Original Signal", axes[0, 0], axes[1, 0], axes[2, 0])
+    plot_signal_and_spectrogram(fs, filtered_signal, "Filtered Signal", axes[0, 1], axes[1, 1], axes[2, 1])
+    
+    plt.show()
     return fs, filtered_signal

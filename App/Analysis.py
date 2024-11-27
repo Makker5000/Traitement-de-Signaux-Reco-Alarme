@@ -3,6 +3,8 @@ from scipy.io.wavfile import read
 from scipy.signal import butter, filtfilt, find_peaks, spectrogram
 import sounddevice as sd
 import matplotlib.pyplot as plt
+import Processing
+from Processing import plot_signal_and_spectrogram
 
 #-------------------------------------------------------------------------------------------------
 # PLAGES DE FRÉQUENCES
@@ -135,6 +137,10 @@ def extraire_son_hyper_hypo(fe, signal_filtre):
     signal_reduit, _ = extraire_regions_specifiques(
         signal_filtre, fe, frequencies, times, spectro, plages_frequences
     )
+    fig, axes = plt.subplots(3, 2, figsize=(15, 10))
+    plot_signal_and_spectrogram(fe, signal_filtre, "Original Signal", axes[0, 0], axes[1, 0], axes[2, 0])
+    plot_signal_and_spectrogram(fe, signal_reduit, "Filtered Signal", axes[0, 1], axes[1, 1], axes[2, 1])
+    plt.show()
 
     # Retourner la fréquence d'échantillonnage et le signal réduit
     return fe, signal_reduit

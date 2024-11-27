@@ -4,6 +4,8 @@ from scipy.spatial.distance import cosine, euclidean
 from scipy.signal import correlate, find_peaks, spectrogram, butter, filtfilt
 import matplotlib.pyplot as plt
 from scipy.io.wavfile import read
+from Processing import plot_signal_and_spectrogram
+from Analysis import extraire_son_hyper_hypo
 
 # -----------------------------------------------------
 # Assignation des chemins de fichiers des alarmes
@@ -184,11 +186,21 @@ def runComparison(rate_test, test_alarm):
     # Chargement des fichiers de sons d'alarme Hypo et Hyper
     r_hypo, a_hypo = load_audio(alarme_hypo)
     r_hyper, a_hyper = load_audio(alarme_hyper)
-    rate_hypo, alarm_hypo = butter_bandpass_filter(r_hypo, a_hypo)
-    rate_hyper, alarm_hyper = butter_bandpass_filter(r_hyper, a_hyper)
-    rate_test, test_alarm = butter_bandpass_filter(rate_test, test_alarm)
+    rate_hypo, alarm_hypo = extraire_son_hyper_hypo(r_hypo, a_hypo)
+    rate_hyper, alarm_hyper = extraire_son_hyper_hypo(r_hyper, a_hyper)
+    # rate_hypo, alarm_hypo = butter_bandpass_filter(r_hypo, a_hypo, 3900, 5250)
+    # rate_hyper, alarm_hyper = butter_bandpass_filter(r_hyper, a_hyper, 3900, 5250)
 
-    rate_hypo, rate_hyper = 48000, 48000
+    fig, axes = plt.subplots(3, 2, figsize=(15, 10))
+    plot_signal_and_spectrogram(r_hypo, a_hypo, "Original Hypo", axes[0, 0], axes[1, 0], axes[2, 0])
+    plot_signal_and_spectrogram(rate_hypo, alarm_hypo, "filtre Hypo", axes[0, 1], axes[1, 1], axes[2, 1])
+    plt.show()
+
+    plot_signal_and_spectrogram(r_hyper, a_hyper, "Original Hyper", axes[0, 0], axes[1, 0], axes[2, 0])
+    plot_signal_and_spectrogram(rate_hyper, alarm_hyper, "filtre Hyper", axes[0, 1], axes[1, 1], axes[2, 1])
+    plt.show()
+
+    
     # Vérification des taux d'échantillonnage
     if rate_hypo != rate_hyper or rate_hypo != rate_test:
         raise ValueError("Les fichiers audio doivent avoir le même taux d'échantillonnage.")

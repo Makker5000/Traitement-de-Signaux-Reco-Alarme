@@ -74,13 +74,3 @@ def generate_alarm_image(alarm_type):
 
     # Afficher l'image
     img.show()
-
-def main():
-    # Exemple d'appel de runComparison pour obtenir le type d'alarme
-    alarm_type = runComparison(rate_test, test_alarm)
-    #alarm_type = "Hyperglycémie"
-    alarm_type = "Hypoglycémie"
-    generate_alarm_image(alarm_type)
-
-if __name__ == "__main__":
-    main()
