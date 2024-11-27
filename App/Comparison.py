@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.fft import fft
 from scipy.spatial.distance import cosine, euclidean
-from scipy.signal import correlate, find_peaks, spectrogram
+from scipy.signal import correlate, find_peaks, spectrogram, butter, filtfilt
 import matplotlib.pyplot as plt
 from scipy.io.wavfile import read
 
@@ -14,6 +14,8 @@ alarme_hyper = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-
 # alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-Alarme-Hypo-Clean.wav"
 # alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-Alarme-Hyper-Clean.wav"
 # alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Test/Son-Alarme-Hypo-Pitch-vers-le-Haut-100cents.wav"
+# alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Test/Hyper-discussion_1.wav"
+# alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Test/Hyper-chien.wav"
 
 # On charge les fichiers audio
 def load_audio(filename):
@@ -27,6 +29,14 @@ def load_audio(filename):
     # Normalisation du signal
     data = data / np.max(np.abs(data))
     return rate, data
+
+def butter_bandpass_filter(fs, data, lowcut, highcut, order=2):
+    nyquist = 0.5 * fs
+    low = lowcut / nyquist
+    high = highcut / nyquist
+    b, a = butter(order, [low, high], btype='band')
+    y = filtfilt(b, a, data)
+    return fs, y
 
 # Fonction pour calculer le spectre d'un signal et ajuster la longueur
 def compute_fft(signal, rate, n_points=None):
@@ -93,7 +103,7 @@ def calculate_similarity(reference_1, reference_2, test_signal):
     return score_1 * 100, score_2 * 100  # Pourcentage de ressemblance
 
 # Fonction pour calculer un spectrogramme
-def compute_spectrogram(signal, rate, nperseg=256):
+def compute_spectrogram(signal, rate, nperseg=1024):
     freqs, times, Sxx = spectrogram(signal, fs=rate, nperseg=nperseg)
     Sxx = 10 * np.log10(Sxx + 1e-10)  # Échelle en dB
     return freqs, times, Sxx
@@ -108,7 +118,7 @@ def compare_spectrograms(S1, S2):
     max_corr = np.max(correlation)
     return max_corr
 
-def determine_alarm_type(freqs, times, Sxx, score_alarm, threshold=50):
+def determine_alarm_type(freqs, times, Sxx, score_alarm, threshold=50, freq_min=3900, freq_max=5250):
     """
     Analyse le spectrogramme pour déterminer le type d'alarme.
     
@@ -124,13 +134,24 @@ def determine_alarm_type(freqs, times, Sxx, score_alarm, threshold=50):
     """
     if score_alarm < threshold:
         return "Ce n'est pas une alarme"
+    
+    # Filtrer les fréquences dans la plage souhaitée
+    freq_mask = (freqs >= freq_min) & (freqs <= freq_max)
+    freqs_filtered = freqs[freq_mask]
+    Sxx_filtered = Sxx[freq_mask, :]
 
     # Détection des fréquences dominantes dans chaque tranche temporelle
+    # dominant_freqs = []
+    # for col in range(Sxx.shape[1]):
+    #     # Identifier la fréquence avec l'amplitude maximale pour chaque tranche temporelle
+    #     dominant_idx = np.argmax(Sxx[:, col])
+    #     dominant_freqs.append(freqs[dominant_idx])
+
+    # Détection des fréquences dominantes dans chaque tranche temporelle (sur la plage filtrée)
     dominant_freqs = []
-    for col in range(Sxx.shape[1]):
-        # Identifier la fréquence avec l'amplitude maximale pour chaque tranche temporelle
-        dominant_idx = np.argmax(Sxx[:, col])
-        dominant_freqs.append(freqs[dominant_idx])
+    for col in range(Sxx_filtered.shape[1]):
+        dominant_idx = np.argmax(Sxx_filtered[:, col])
+        dominant_freqs.append(freqs_filtered[dominant_idx])
 
     # Vérifier l'ordre des fréquences (montant ou descendant)
     differences = np.diff(dominant_freqs)  # Différences entre les fréquences successives
@@ -157,11 +178,14 @@ def determine_alarm_type(freqs, times, Sxx, score_alarm, threshold=50):
 # -----------------------------------------------------
 # Fonction principale du traitement de Comparaison
 # -----------------------------------------------------
-def runComparison(rate_test, test_alarm):
+def runComparison():
     # Chargement des fichiers de sons d'alarme Hypo et Hyper
-    rate_hypo, alarm_hypo = load_audio(alarme_hypo)
-    rate_hyper, alarm_hyper = load_audio(alarme_hyper)
-    # rate_test, test_alarm = load_audio(alarme_test)
+    r_hypo, a_hypo = load_audio(alarme_hypo)
+    r_hyper, a_hyper = load_audio(alarme_hyper)
+    r_t, t_a = load_audio(alarme_test)
+    rate_hypo, alarm_hypo = butter_bandpass_filter(r_hypo, a_hypo, 3900, 5250)
+    rate_hyper, alarm_hyper = butter_bandpass_filter(r_hyper, a_hyper, 3900, 5250)
+    rate_test, test_alarm = butter_bandpass_filter(r_t, t_a, 3900, 5250)
 
     # Vérification des taux d'échantillonnage
     if rate_hypo != rate_hyper or rate_hypo != rate_test:
@@ -212,35 +236,35 @@ def runComparison(rate_test, test_alarm):
 
     # (Optionnel) Visualisation des spectres pour vérifier les similarités
     # Affichage des spectres
-    # plt.figure(figsize=(12, 6))
-    # plt.plot(freqs_hypo, spectrum_hypo, label="Spectre Hypoglycémie", color='blue', alpha=0.7)
-    # plt.plot(freqs_hyper, spectrum_hyper, label="Spectre Hyperglycémie", color='red', alpha=0.7)
-    # plt.plot(freqs_test, spectrum_test, label="Spectre Test", color='green', linestyle='--', alpha=0.7)
-    # plt.xlabel("Fréquence (Hz)")
-    # plt.ylabel("Amplitude")
-    # plt.legend()
-    # plt.title("Comparaison des spectres de fréquence")
-    # plt.show()
+    plt.figure(figsize=(12, 6))
+    plt.plot(freqs_hypo, spectrum_hypo, label="Spectre Hypoglycémie", color='blue', alpha=0.7)
+    plt.plot(freqs_hyper, spectrum_hyper, label="Spectre Hyperglycémie", color='red', alpha=0.7)
+    plt.plot(freqs_test, spectrum_test, label="Spectre Test", color='green', linestyle='--', alpha=0.7)
+    plt.xlabel("Fréquence (Hz)")
+    plt.ylabel("Amplitude")
+    plt.legend()
+    plt.title("Comparaison des spectres de fréquence")
+    plt.show()
 
-    # plt.figure(figsize=(18, 6))
-    # plt.subplot(1, 3, 1)
-    # plt.pcolormesh(times_hypo, freqs_hypo_s, Sxx_hypo, shading='gouraud')
-    # plt.title("Spectrogramme Hypoglycémie")
-    # plt.ylabel("Fréquence (Hz)")
-    # plt.xlabel("Temps (s)")
-    # plt.colorbar()
+    plt.figure(figsize=(18, 6))
+    plt.subplot(1, 3, 1)
+    plt.pcolormesh(times_hypo, freqs_hypo_s, Sxx_hypo, shading='gouraud')
+    plt.title("Spectrogramme Hypoglycémie")
+    plt.ylabel("Fréquence (Hz)")
+    plt.xlabel("Temps (s)")
+    plt.colorbar()
 
-    # plt.subplot(1, 3, 2)
-    # plt.pcolormesh(times_hyper, freqs_hyper_s, Sxx_hyper, shading='gouraud')
-    # plt.title("Spectrogramme Hyperglycémie")
-    # plt.xlabel("Temps (s)")
-    # plt.colorbar()
+    plt.subplot(1, 3, 2)
+    plt.pcolormesh(times_hyper, freqs_hyper_s, Sxx_hyper, shading='gouraud')
+    plt.title("Spectrogramme Hyperglycémie")
+    plt.xlabel("Temps (s)")
+    plt.colorbar()
 
-    # plt.subplot(1, 3, 3)
-    # plt.pcolormesh(times_test, freqs_test_s, Sxx_test, shading='gouraud')
-    # plt.title("Spectrogramme Test")
-    # plt.xlabel("Temps (s)")
-    # plt.colorbar()
+    plt.subplot(1, 3, 3)
+    plt.pcolormesh(times_test, freqs_test_s, Sxx_test, shading='gouraud')
+    plt.title("Spectrogramme Test")
+    plt.xlabel("Temps (s)")
+    plt.colorbar()
 
-    # plt.tight_layout()
-    # plt.show()
+    plt.tight_layout()
+    plt.show()
