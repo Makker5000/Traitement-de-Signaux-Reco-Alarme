@@ -266,4 +266,4 @@ def runComparison(rate_test, test_alarm):
     # plt.tight_layout()
     # plt.show()
 
-    return score_hypo, score_hyper, score_spectro_hypo, score_spectro_hyper, isAlarm_result, alarm_type
+    return score_hypo, score_hyper, score_spectro_hypo, score_spectro_hyper, alarm_message, alarm_type
