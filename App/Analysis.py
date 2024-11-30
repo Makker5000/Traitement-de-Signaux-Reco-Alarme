@@ -64,23 +64,6 @@ def extraire_regions_specifiques(signal, fe, frequencies, times, spectro, plages
         print("Aucune région contenant les plages de fréquences spécifiées n'a été détectée.")
         return None, None
 
-def afficher_signal(t, signal, titre="Signal"):
-    """
-    Affiche un signal en fonction du temps.
-    
-    Parameters:
-        t (array): Les temps du signal.
-        signal (array): Le signal à afficher.
-        titre (str): Le titre du graphique.
-    """
-    plt.figure(figsize=(10, 6))
-    plt.plot(t, signal)
-    plt.title(titre)
-    plt.xlabel("Temps [s]")
-    plt.ylabel("Amplitude")
-    plt.grid(True)
-    plt.show()
-
 def extraire_son_hyper_hypo(fe, signal_filtre):
     """
     Parameters:
