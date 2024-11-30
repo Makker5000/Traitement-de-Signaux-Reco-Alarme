@@ -184,11 +184,10 @@ def runComparison(rate_test, test_alarm):
     # Chargement des fichiers de sons d'alarme Hypo et Hyper
     r_hypo, a_hypo = load_audio(alarme_hypo)
     r_hyper, a_hyper = load_audio(alarme_hyper)
-    rate_hypo, alarm_hypo = butter_bandpass_filter(r_hypo, a_hypo)
-    rate_hyper, alarm_hyper = butter_bandpass_filter(r_hyper, a_hyper)
-    rate_test, test_alarm = butter_bandpass_filter(rate_test, test_alarm)
+    rate_hypo, alarm_hypo = butter_bandpass_filter(r_hypo, a_hypo, 3900, 5250, 2)
+    rate_hyper, alarm_hyper = butter_bandpass_filter(r_hyper, a_hyper, 3900, 5250, 2)
+    rate_test, test_alarm = butter_bandpass_filter(rate_test, test_alarm, 3900, 5250, 2)
 
-    rate_hypo, rate_hyper = 48000, 48000
     # Vérification des taux d'échantillonnage
     if rate_hypo != rate_hyper or rate_hypo != rate_test:
         raise ValueError("Les fichiers audio doivent avoir le même taux d'échantillonnage.")
