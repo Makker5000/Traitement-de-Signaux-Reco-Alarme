@@ -4,11 +4,21 @@ from Comparison import *
 from Result import *
 
 def main():
-
-    fs, signal = process("Ressources\Sons-de-Test\Hyper-chien.wav")
+    #-------------------------------------------------------------------------------------------------
+    # LECTURE DU SIGNAL ORIGINAL ET FILTRAGE DU SIGNAL ORIGINAL
+    #-------------------------------------------------------------------------------------------------
+    fs, signal = process("../Ressources/Sons-de-Test/Son-Alarme-Hypo-Pitch-vers-le-Haut-100cents.wav")
+    #-------------------------------------------------------------------------------------------------
+    # EXTRACTION DU SON HYPER/HYPO
+    #-------------------------------------------------------------------------------------------------
     fs_fen, signal_fen = extraire_son_hyper_hypo(fs, signal)
+    #-------------------------------------------------------------------------------------------------
+    # COMPARAISON AVEC LES SIGNAUX AUDIOS DE RÉFÉRENCES HYPERGLYCÉMIQUE/HYPOGLYCÉMIQUE
+    #-------------------------------------------------------------------------------------------------
     score_hypo, score_hyper, score_spectro_hypo, score_spectro_hyper, isAlarm_result, alarm_type = runComparison(fs_fen, signal_fen)
-
+    #-------------------------------------------------------------------------------------------------
+    # IMAGE MONTRANT LE RÉSULTAT
+    #-------------------------------------------------------------------------------------------------
     generate_alarm_image(alarm_type)
 
 

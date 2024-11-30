@@ -7,28 +7,6 @@ import Processing
 from Processing import plot_signal_and_spectrogram
 
 #-------------------------------------------------------------------------------------------------
-# PLAGES DE FRÉQUENCES
-#-------------------------------------------------------------------------------------------------
-
-# plage de fréquences fondamentales du son hyper/hypo : 1200-5600 Hz
-
-#-------------------------------------------------------------------------------------------------
-# FONCTION DE CHARGEMENT DES FICHIERS AUDIOS
-#-------------------------------------------------------------------------------------------------
-
-def load_audio(filename):
-    # Charge le fichier audio et normalise le signal
-    rate, data = read(filename)
-
-    # Pour les fichiers stéréo, garder un canal
-    if data.ndim > 1:
-        data = data[:, 0]
-
-    # Normalisation du signal
-    data = data / np.max(np.abs(data))
-    return rate, data
-
-#-------------------------------------------------------------------------------------------------
 # EXTRACTION DU SON HYPER/HYPO
 #-------------------------------------------------------------------------------------------------
 
@@ -137,29 +115,12 @@ def extraire_son_hyper_hypo(fe, signal_filtre):
     signal_reduit, _ = extraire_regions_specifiques(
         signal_filtre, fe, frequencies, times, spectro, plages_frequences
     )
+
+    # Affichage des résultats
     fig, axes = plt.subplots(3, 2, figsize=(15, 10))
-    plot_signal_and_spectrogram(fe, signal_filtre, "Original Signal", axes[0, 0], axes[1, 0], axes[2, 0])
-    plot_signal_and_spectrogram(fe, signal_reduit, "Filtered Signal", axes[0, 1], axes[1, 1], axes[2, 1])
+    plot_signal_and_spectrogram(fe, signal_filtre, "Filtered Signal", axes[0, 0], axes[1, 0], axes[2, 0])
+    plot_signal_and_spectrogram(fe, signal_reduit, "Signal Réduit", axes[0, 1], axes[1, 1], axes[2, 1])
     plt.show()
 
     # Retourner la fréquence d'échantillonnage et le signal réduit
     return fe, signal_reduit
-
-# Appel de la fonction avec le signal filtré et sa fréquence d'échantillonnage
-    # CECI EST COMMENT ON APPEL LA FONCTION frequence_echantillonnage, signal_reduit = extraire_son_hyper_hypo(signal_filtre, fe)
-
-# Affichage des résultats
-# print(f"Fréquence d'échantillonnage : {frequence_echantillonnage} Hz")
-# if signal_reduit is not None:
-#     print(f"Signal réduit disponible avec {len(signal_reduit)} échantillons.")
-# else:
-#     print("Aucun signal réduit n'a été détecté.")
-
-# Écoute du son réduit
-# if signal_reduit is not None:
-#     print("Lecture du signal réduit...")
-#     sd.play(signal_reduit, frequence_echantillonnage)
-#     sd.wait()
-#     print("Lecture terminée.")
-# else:
-#     print("Aucun signal réduit disponible pour la lecture.")
