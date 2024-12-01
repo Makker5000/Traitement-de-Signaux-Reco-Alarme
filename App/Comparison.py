@@ -10,8 +10,8 @@ from Analysis import extraire_son_hyper_hypo
 # -----------------------------------------------------
 # Assignation des chemins de fichiers des alarmes
 # -----------------------------------------------------
-alarme_hypo = "../Ressources/Sons-de-Ref/Son-Alarme-Hypo-Clean.wav"
-alarme_hyper = "../Ressources/Sons-de-Ref/Son-Alarme-Hyper-Clean.wav"
+alarme_hypo = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-Alarme-Hypo-Clean.wav"
+alarme_hyper = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-Alarme-Hyper-Clean.wav"
 
 # alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Test/Son-Alarme-Hypo-bruit-Strident-derriere.wav"
 # alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-Alarme-Hypo-Clean.wav"
@@ -19,6 +19,8 @@ alarme_hyper = "../Ressources/Sons-de-Ref/Son-Alarme-Hyper-Clean.wav"
 # alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Test/Son-Alarme-Hypo-Pitch-vers-le-Haut-100cents.wav"
 # alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Test/Hyper-discussion_1.wav"
 # alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Test/Hyper-chien.wav"
+# alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Test/Chien-qui-aboie.wav"
+# alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Test/Discussion-en-fond.wav"
 
 # On charge les fichiers audio
 def load_audio(filename):
@@ -257,8 +259,8 @@ def calculate_similarity(reference_1, reference_2, test_signal):
     correlation_2 = np.max(correlate(ref2_norm, test_norm)) / len(ref2_norm)
 
     # Score final (pondération ajustable)
-    score_1 = 0.4 * similarity_euclidean_1 + 0.4 * similarity_cosine_1 + 0.2 * correlation_1
-    score_2 = 0.4 * similarity_euclidean_2 + 0.4 * similarity_cosine_2 + 0.2 * correlation_2
+    score_1 = 0.4 * similarity_euclidean_1 + 0.6 * similarity_cosine_1 + 0.4 * correlation_1
+    score_2 = 0.4 * similarity_euclidean_2 + 0.6 * similarity_cosine_2 + 0.4 * correlation_2
 
     return score_1 * 100, score_2 * 100  # Pourcentage de ressemblance
 
