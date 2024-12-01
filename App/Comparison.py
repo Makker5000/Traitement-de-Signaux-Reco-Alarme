@@ -4,7 +4,7 @@ from scipy.spatial.distance import cosine, euclidean
 from scipy.signal import correlate, find_peaks, spectrogram, butter, filtfilt
 import matplotlib.pyplot as plt
 from scipy.io.wavfile import read
-from Processing import plot_signal_and_spectrogram
+from Processing import plot_signal_and_spectrogram, process
 from Analysis import extraire_son_hyper_hypo
 
 # -----------------------------------------------------
@@ -462,6 +462,11 @@ def runComparison(rate_test, test_alarm):
     # Chargement des fichiers de sons d'alarme Hypo et Hyper
     r_hypo, a_hypo = load_audio(alarme_hypo)
     r_hyper, a_hyper = load_audio(alarme_hyper)
+    r_filtre_hypo, a_filtre_hypo = process(alarme_hypo)
+    r_filtre_hyper, a_filtre_hyper = process(alarme_hyper)
+
+    rate_f_a_hypo, alarm_f_a_hypo = extraire_son_hyper_hypo(r_filtre_hypo, a_filtre_hypo)
+    rate_f_a_hyper, alarm_f_a_hyper = extraire_son_hyper_hypo(r_filtre_hyper, a_filtre_hyper)
     rate_hypo, alarm_hypo = extraire_son_hyper_hypo(r_hypo, a_hypo)
     rate_hyper, alarm_hyper = extraire_son_hyper_hypo(r_hyper, a_hyper)
 
@@ -483,8 +488,8 @@ def runComparison(rate_test, test_alarm):
     n_points = min(len(alarm_hypo), len(alarm_hyper), len(test_alarm))
 
     # Calcul des FFT
-    freqs_hypo, spectrum_hypo = compute_fft(alarm_hypo, rate_hypo, n_points=n_points)
-    freqs_hyper, spectrum_hyper = compute_fft(alarm_hyper, rate_hyper, n_points=n_points)
+    freqs_hypo, spectrum_hypo = compute_fft(alarm_f_a_hypo, rate_f_a_hypo, n_points=n_points)
+    freqs_hyper, spectrum_hyper = compute_fft(alarm_f_a_hyper, rate_f_a_hyper, n_points=n_points)
     freqs_test, spectrum_test = compute_fft(test_alarm, rate_test, n_points=n_points)
 
     # Correction de pitch sur le spectre de test

@@ -7,7 +7,7 @@ def main():
     #-------------------------------------------------------------------------------------------------
     # LECTURE DU SIGNAL ORIGINAL ET FILTRAGE DU SIGNAL ORIGINAL
     #-------------------------------------------------------------------------------------------------
-    fs, signal = process("../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Test/Son-Alarme-Hypo-Pitch-vers-le-Haut-100cents.wav")
+    fs, signal = process("Ressources\Sons-de-Test\Hyper-discussion_1.wav")
     #-------------------------------------------------------------------------------------------------
     # EXTRACTION DU SON HYPER/HYPO
     #-------------------------------------------------------------------------------------------------
