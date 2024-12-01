@@ -3,15 +3,15 @@ from scipy.fft import fft
 from scipy.spatial.distance import cosine, euclidean
 from scipy.signal import correlate, find_peaks, spectrogram, butter, filtfilt
 import matplotlib.pyplot as plt
-from scipy.io.wavfile import read
+from scipy.io.wavfile import read, write
 from Processing import plot_signal_and_spectrogram, process
 from Analysis import extraire_son_hyper_hypo
 
 # -----------------------------------------------------
 # Assignation des chemins de fichiers des alarmes
 # -----------------------------------------------------
-alarme_hypo = "../Ressources/Sons-de-Ref/Son-Alarme-Hypo-Clean.wav"
-alarme_hyper = "../Ressources/Sons-de-Ref/Son-Alarme-Hyper-Clean.wav"
+alarme_hypo = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-Alarme-Hypo-Clean2.wav"
+alarme_hyper = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-Alarme-Hyper-Clean2.wav"
 
 # alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Test/Son-Alarme-Hypo-bruit-Strident-derriere.wav"
 # alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-Alarme-Hypo-Clean.wav"
@@ -460,13 +460,17 @@ def runComparison(rate_test, test_alarm):
         ValueError: Si les taux d'échantillonnage des signaux de référence et de test sont différents.
     """
     # Chargement des fichiers de sons d'alarme Hypo et Hyper
-    #r_hypo, a_hypo = load_audio(alarme_hypo)
-    #r_hyper, a_hyper = load_audio(alarme_hyper)
-    r_filtre_hypo, a_filtre_hypo = process(alarme_hypo)
-    r_filtre_hyper, a_filtre_hyper = process(alarme_hyper)
+    r_hypo, a_hypo = load_audio(alarme_hypo)
+    r_hyper, a_hyper = load_audio(alarme_hyper)
 
-    rate_f_a_hypo, alarm_f_a_hypo = extraire_son_hyper_hypo(r_filtre_hypo, a_filtre_hypo)
-    rate_f_a_hyper, alarm_f_a_hyper = extraire_son_hyper_hypo(r_filtre_hyper, a_filtre_hyper)
+    # r_filtre_hypo, a_filtre_hypo = process(alarme_hypo)
+    # r_filtre_hyper, a_filtre_hyper = process(alarme_hyper)
+
+    # rate_f_a_hypo, alarm_f_a_hypo = extraire_son_hyper_hypo(r_filtre_hypo, a_filtre_hypo)
+    # rate_f_a_hyper, alarm_f_a_hyper = extraire_son_hyper_hypo(r_filtre_hyper, a_filtre_hyper)
+    rate_f_a_hypo, alarm_f_a_hypo = butter_bandpass_filter(r_hypo, a_hypo, 3900, 5250, 2)
+    rate_f_a_hyper, alarm_f_a_hyper = butter_bandpass_filter(r_hyper, a_hyper, 3900, 5250, 2)
+
     #rate_hypo, alarm_hypo = extraire_son_hyper_hypo(r_hypo, a_hypo)
     #rate_hyper, alarm_hyper = extraire_son_hyper_hypo(r_hyper, a_hyper)
 
@@ -511,6 +515,9 @@ def runComparison(rate_test, test_alarm):
 
     # Détermination du type d'alarme
     alarm_type = determine_alarm_type(freqs_test_s, times_test, Sxx_test, score_alarm, threshold=50)
+
+    # write('../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-Alarme-Hypo-Clean2.wav', rate_f_a_hypo, (alarm_f_a_hypo * 32767).astype(np.int16))
+    # write('../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-Alarme-Hyper-Clean2.wav', rate_f_a_hyper, (alarm_f_a_hyper * 32767).astype(np.int16))
 
     # Affichage des résultats
     print(f"Score spectre Hypoglycémie : {score_hypo:.2f}%")
