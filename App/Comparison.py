@@ -10,8 +10,8 @@ from Analysis import extraire_son_hyper_hypo
 # -----------------------------------------------------
 # Assignation des chemins de fichiers des alarmes
 # -----------------------------------------------------
-alarme_hypo = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-Alarme-Hypo-Clean.wav"
-alarme_hyper = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-Alarme-Hyper-Clean.wav"
+alarme_hypo = "../Ressources/Sons-de-Ref/Son-Alarme-Hypo-Clean.wav"
+alarme_hyper = "../Ressources/Sons-de-Ref/Son-Alarme-Hyper-Clean.wav"
 
 # alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Test/Son-Alarme-Hypo-bruit-Strident-derriere.wav"
 # alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-Alarme-Hypo-Clean.wav"
@@ -460,15 +460,15 @@ def runComparison(rate_test, test_alarm):
         ValueError: Si les taux d'échantillonnage des signaux de référence et de test sont différents.
     """
     # Chargement des fichiers de sons d'alarme Hypo et Hyper
-    r_hypo, a_hypo = load_audio(alarme_hypo)
-    r_hyper, a_hyper = load_audio(alarme_hyper)
+    #r_hypo, a_hypo = load_audio(alarme_hypo)
+    #r_hyper, a_hyper = load_audio(alarme_hyper)
     r_filtre_hypo, a_filtre_hypo = process(alarme_hypo)
     r_filtre_hyper, a_filtre_hyper = process(alarme_hyper)
 
     rate_f_a_hypo, alarm_f_a_hypo = extraire_son_hyper_hypo(r_filtre_hypo, a_filtre_hypo)
     rate_f_a_hyper, alarm_f_a_hyper = extraire_son_hyper_hypo(r_filtre_hyper, a_filtre_hyper)
-    rate_hypo, alarm_hypo = extraire_son_hyper_hypo(r_hypo, a_hypo)
-    rate_hyper, alarm_hyper = extraire_son_hyper_hypo(r_hyper, a_hyper)
+    #rate_hypo, alarm_hypo = extraire_son_hyper_hypo(r_hypo, a_hypo)
+    #rate_hyper, alarm_hyper = extraire_son_hyper_hypo(r_hyper, a_hyper)
 
     # fig, axes = plt.subplots(3, 2, figsize=(15, 10))
     # plot_signal_and_spectrogram(r_hypo, a_hypo, "Original Hypo", axes[0, 0], axes[1, 0], axes[2, 0])
@@ -481,11 +481,11 @@ def runComparison(rate_test, test_alarm):
 
     
     # Vérification des taux d'échantillonnage
-    if rate_hypo != rate_hyper or rate_hypo != rate_test:
+    if rate_f_a_hypo != rate_f_a_hyper or rate_f_a_hypo != rate_test:
         raise ValueError("Les fichiers audio doivent avoir le même taux d'échantillonnage.")
 
     # Nombre de points pour la FFT
-    n_points = min(len(alarm_hypo), len(alarm_hyper), len(test_alarm))
+    n_points = min(len(alarm_f_a_hypo), len(alarm_f_a_hyper), len(test_alarm))
 
     # Calcul des FFT
     freqs_hypo, spectrum_hypo = compute_fft(alarm_f_a_hypo, rate_f_a_hypo, n_points=n_points)
@@ -501,8 +501,8 @@ def runComparison(rate_test, test_alarm):
 
     # Calcul des spectrogrammes avec ajustement dynamique
     nperseg = min(len(test_alarm) // 10, 8192)  # Taille dynamique de la fenêtre
-    freqs_hypo_s, times_hypo, Sxx_hypo = compute_spectrogram(alarm_hypo, rate_hypo, nperseg=nperseg)
-    freqs_hyper_s, times_hyper, Sxx_hyper = compute_spectrogram(alarm_hyper, rate_hyper, nperseg=nperseg)
+    freqs_hypo_s, times_hypo, Sxx_hypo = compute_spectrogram(alarm_f_a_hypo, rate_f_a_hypo, nperseg=nperseg)
+    freqs_hyper_s, times_hyper, Sxx_hyper = compute_spectrogram(alarm_f_a_hyper, rate_f_a_hyper, nperseg=nperseg)
     freqs_test_s, times_test, Sxx_test = compute_spectrogram(test_alarm, rate_test, nperseg=nperseg)
 
     # Calcul des similarités des spectrogrammes
