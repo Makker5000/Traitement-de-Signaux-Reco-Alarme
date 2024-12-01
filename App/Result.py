@@ -49,17 +49,17 @@ def generate_alarm_image(alarm_type):
     if alarm_type == "Hyperglycémie":
         base_color_start = (255, 0, 0)  # Rouge
         base_color_end = (255, 255, 0)  # Jaune
-        icon = "↑"  # Flèche montante pour Hyperglycémie
+        # icon = "↑"  # Flèche montante pour Hyperglycémie
         arrow_color = (255, 255, 255)  # Blanc pour la flèche
     elif alarm_type == "Hypoglycémie":
         base_color_start = (0, 0, 255)  # Bleu
         base_color_end = (0, 255, 0)  # Vert
-        icon = "↓"  # Flèche descendante pour Hypoglycémie
+        # icon = "↓"  # Flèche descendante pour Hypoglycémie
         arrow_color = (255, 255, 255)  # Blanc pour la flèche
     else:
         base_color_start = (169, 169, 169)  # Gris
         base_color_end = (169, 169, 169)  # Gris
-        icon = "?"  # Icône neutre pour inconnu
+        # icon = "?"  # Icône neutre pour inconnu
         arrow_color = (169, 169, 169)  # Gris pour une flèche neutre
 
     # Créer l'image avec un fond dégradé dynamique
@@ -87,17 +87,17 @@ def generate_alarm_image(alarm_type):
     wave_offset = text_area_offset
 
     # Ajouter une flèche stylisée
-    if alarm_type == "Hyperglycémie":
-        draw.line((width // 2, wave_offset, width // 2, wave_offset - 50), fill=arrow_color, width=6)  # Tige de la flèche
-        draw.line([(width // 2 - 20, wave_offset - 50), (width // 2 + 20, wave_offset - 50)], fill=arrow_color, width=6)  # Bas de la flèche
-    elif alarm_type == "Hypoglycémie":
-        draw.line((width // 2, wave_offset, width // 2, wave_offset + 50), fill=arrow_color, width=6)  # Tige de la flèche
-        draw.line([(width // 2 - 20, wave_offset + 50), (width // 2 + 20, wave_offset + 50)], fill=arrow_color, width=6)  # Bas de la flèche
+    # if alarm_type == "Hyperglycémie":
+    #     draw.line((width // 2, wave_offset, width // 2, wave_offset - 50), fill=arrow_color, width=6)  # Tige de la flèche
+    #     draw.line([(width // 2 - 20, wave_offset - 50), (width // 2 + 20, wave_offset - 50)], fill=arrow_color, width=6)  # Bas de la flèche
+    # elif alarm_type == "Hypoglycémie":
+    #     draw.line((width // 2, wave_offset, width // 2, wave_offset + 50), fill=arrow_color, width=6)  # Tige de la flèche
+    #     draw.line([(width // 2 - 20, wave_offset + 50), (width // 2 + 20, wave_offset + 50)], fill=arrow_color, width=6)  # Bas de la flèche
 
     # Ajouter du texte pour le type d'alarme (avec fond pour la lisibilité)
     text = alarm_type
     try:
-        font = ImageFont.truetype("arial.ttf", 80)
+        font = ImageFont.truetype("arial.ttf", 70)
     except IOError:
         font = ImageFont.load_default()
 
