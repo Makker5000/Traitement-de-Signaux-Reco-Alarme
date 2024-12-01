@@ -264,9 +264,9 @@ def process(file_path):
     # Appliquer les filtres
     filtered_signal = combine_bandpass_filters(signal, fs, lowcuts, highcuts)
 
-    fig, axes = plt.subplots(3, 2, figsize=(15, 10))
-    plot_signal_and_spectrogram(fs, signal, "Original Signal", axes[0, 0], axes[1, 0], axes[2, 0])
-    plot_signal_and_spectrogram(fs, filtered_signal, "Filtered Signal", axes[0, 1], axes[1, 1], axes[2, 1])
+    # fig, axes = plt.subplots(3, 2, figsize=(15, 10))
+    # plot_signal_and_spectrogram(fs, signal, "Original Signal", axes[0, 0], axes[1, 0], axes[2, 0])
+    # plot_signal_and_spectrogram(fs, filtered_signal, "Filtered Signal", axes[0, 1], axes[1, 1], axes[2, 1])
     
-    plt.show()
+    # plt.show()
     return fs, filtered_signal

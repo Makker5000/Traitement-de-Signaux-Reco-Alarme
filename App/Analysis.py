@@ -100,10 +100,10 @@ def extraire_son_hyper_hypo(fe, signal_filtre):
     )
 
     # Affichage des résultats
-    fig, axes = plt.subplots(3, 2, figsize=(15, 10))
-    plot_signal_and_spectrogram(fe, signal_filtre, "Filtered Signal", axes[0, 0], axes[1, 0], axes[2, 0])
-    plot_signal_and_spectrogram(fe, signal_reduit, "Signal Réduit", axes[0, 1], axes[1, 1], axes[2, 1])
-    plt.show()
+    # fig, axes = plt.subplots(3, 2, figsize=(15, 10))
+    # plot_signal_and_spectrogram(fe, signal_filtre, "Filtered Signal", axes[0, 0], axes[1, 0], axes[2, 0])
+    # plot_signal_and_spectrogram(fe, signal_reduit, "Signal Réduit", axes[0, 1], axes[1, 1], axes[2, 1])
+    # plt.show()
 
     # Retourner la fréquence d'échantillonnage et le signal réduit
     return fe, signal_reduit

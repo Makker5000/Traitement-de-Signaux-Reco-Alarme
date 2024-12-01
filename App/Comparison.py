@@ -465,14 +465,14 @@ def runComparison(rate_test, test_alarm):
     rate_hypo, alarm_hypo = extraire_son_hyper_hypo(r_hypo, a_hypo)
     rate_hyper, alarm_hyper = extraire_son_hyper_hypo(r_hyper, a_hyper)
 
-    fig, axes = plt.subplots(3, 2, figsize=(15, 10))
-    plot_signal_and_spectrogram(r_hypo, a_hypo, "Original Hypo", axes[0, 0], axes[1, 0], axes[2, 0])
-    plot_signal_and_spectrogram(rate_hypo, alarm_hypo, "filtre Hypo", axes[0, 1], axes[1, 1], axes[2, 1])
-    plt.show()
+    # fig, axes = plt.subplots(3, 2, figsize=(15, 10))
+    # plot_signal_and_spectrogram(r_hypo, a_hypo, "Original Hypo", axes[0, 0], axes[1, 0], axes[2, 0])
+    # plot_signal_and_spectrogram(rate_hypo, alarm_hypo, "filtre Hypo", axes[0, 1], axes[1, 1], axes[2, 1])
+    # plt.show()
 
-    plot_signal_and_spectrogram(r_hyper, a_hyper, "Original Hyper", axes[0, 0], axes[1, 0], axes[2, 0])
-    plot_signal_and_spectrogram(rate_hyper, alarm_hyper, "filtre Hyper", axes[0, 1], axes[1, 1], axes[2, 1])
-    plt.show()
+    # plot_signal_and_spectrogram(r_hyper, a_hyper, "Original Hyper", axes[0, 0], axes[1, 0], axes[2, 0])
+    # plot_signal_and_spectrogram(rate_hyper, alarm_hyper, "filtre Hyper", axes[0, 1], axes[1, 1], axes[2, 1])
+    # plt.show()
 
     
     # Vérification des taux d'échantillonnage
