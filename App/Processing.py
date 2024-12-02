@@ -1,6 +1,6 @@
 import numpy as np
-from scipy.fft import fft, fftfreq
-from scipy.signal import butter, filtfilt, resample_poly, spectrogram
+from scipy.fft import fft
+from scipy.signal import butter, filtfilt, resample_poly
 import soundfile as sf
 
 def compute_fft(signal, rate, n_points=None):
