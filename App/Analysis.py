@@ -1,10 +1,6 @@
 import numpy as np
-from scipy.io.wavfile import read
-from scipy.signal import butter, filtfilt, find_peaks, spectrogram
-import sounddevice as sd
-import matplotlib.pyplot as plt
-import Processing
-from Processing import plot_signal_and_spectrogram
+from scipy.signal import spectrogram
+
 
 #-------------------------------------------------------------------------------------------------
 # EXTRACTION DU SON HYPER/HYPO
@@ -79,15 +75,6 @@ def extraire_son_hyper_hypo(fe, signal_filtre):
         (1280, 1340), (1380, 1440), (1470, 1540), (1580, 1660), (1690, 1760)   # Nouvelles plages ajoutées
     ]
 
-    #Plages de fréquence dominantes au cas où les harmoniques en plus posent problème
-    # plages_frequences = [
-    # (3900, 4000),
-    # (4150, 4300),
-    # (4400, 4600),
-    # (4750, 5000),
-    # (5100, 5250)
-    # ]
-
     taille_fenetre = 1024
     overlap = 512
 
@@ -98,12 +85,6 @@ def extraire_son_hyper_hypo(fe, signal_filtre):
     signal_reduit, _ = extraire_regions_specifiques(
         signal_filtre, fe, frequencies, times, spectro, plages_frequences
     )
-
-    # Affichage des résultats
-    # fig, axes = plt.subplots(3, 2, figsize=(15, 10))
-    # plot_signal_and_spectrogram(fe, signal_filtre, "Filtered Signal", axes[0, 0], axes[1, 0], axes[2, 0])
-    # plot_signal_and_spectrogram(fe, signal_reduit, "Signal Réduit", axes[0, 1], axes[1, 1], axes[2, 1])
-    # plt.show()
 
     # Retourner la fréquence d'échantillonnage et le signal réduit
     return fe, signal_reduit
