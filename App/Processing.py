@@ -2,56 +2,6 @@ import numpy as np
 from scipy.fft import fft, fftfreq
 from scipy.signal import butter, filtfilt, resample_poly, spectrogram
 import soundfile as sf
-import matplotlib.pyplot as plt
-
-def plot_signal_and_spectrogram(fs, signal, title, ax_time, ax_freq, ax_spec):
-    """
-    Trace le signal dans le domaine temporel, son spectre fréquentiel et son spectrogramme.
-
-    Args:
-        fs (int): Fréquence d'échantillonnage du signal en Hz.
-        signal (numpy.ndarray): Signal audio à analyser.
-        title (str): Titre à afficher sur les graphiques.
-        ax_time (matplotlib.axes.Axes): Objet Axes de Matplotlib pour le graphique temporel.
-        ax_freq (matplotlib.axes.Axes): Objet Axes de Matplotlib pour le spectre fréquentiel.
-        ax_spec (matplotlib.axes.Axes): Objet Axes de Matplotlib pour le spectrogramme.
-
-    Comportement :
-        - Le graphique temporel affiche l'amplitude du signal en fonction du temps.
-        - Le spectre fréquentiel montre la magnitude de la Transformée de Fourier.
-        - Le spectrogramme visualise le contenu fréquentiel du signal en fonction du temps.
-
-    Returns:
-        None: La fonction modifie directement les objets Axes fournis pour afficher les graphiques.
-
-    Exemple:
-        >>> import matplotlib.pyplot as plt
-        >>> fig, (ax_time, ax_freq, ax_spec) = plt.subplots(3, 1, figsize=(10, 8))
-        >>> fs = 44100
-        >>> signal = np.sin(2 * np.pi * 440 * np.linspace(0, 1, fs))
-        >>> plot_signal_and_spectrogram(fs, signal, "Signal Exemple", ax_time, ax_freq, ax_spec)
-        >>> plt.tight_layout()
-        >>> plt.show()
-    """
-    # Spectre temporel
-    t = np.arange(len(signal)) / fs
-    ax_time.plot(t, signal)
-    ax_time.set_title(f"Time Domain: {title}")
-    ax_time.set_xlabel("Time (s)")
-    ax_time.set_ylabel("Amplitude")
-    # Spectre fréquentiel
-    freqs = fftfreq(len(signal), 1/fs)
-    fft_values = np.abs(fft(signal))
-    ax_freq.plot(freqs[:len(freqs)//2], fft_values[:len(fft_values)//2])
-    ax_freq.set_title(f"Frequency Domain: {title}")
-    ax_freq.set_xlabel("Frequency (Hz)")
-    ax_freq.set_ylabel("Amplitude")
-    # Spectrogramme
-    f, t_spec, Sxx = spectrogram(signal, fs)
-    ax_spec.pcolormesh(t_spec, f, 10 * np.log10(Sxx), shading='gouraud')
-    ax_spec.set_title(f"Spectrogram: {title}")
-    ax_spec.set_xlabel("Time (s)")
-    ax_spec.set_ylabel("Frequency (Hz)")
 
 def compute_fft(signal, rate, n_points=None):
     """
@@ -264,9 +214,4 @@ def process(file_path):
     # Appliquer les filtres
     filtered_signal = combine_bandpass_filters(signal, fs, lowcuts, highcuts)
 
-    # fig, axes = plt.subplots(3, 2, figsize=(15, 10))
-    # plot_signal_and_spectrogram(fs, signal, "Original Signal", axes[0, 0], axes[1, 0], axes[2, 0])
-    # plot_signal_and_spectrogram(fs, filtered_signal, "Filtered Signal", axes[0, 1], axes[1, 1], axes[2, 1])
-    
-    # plt.show()
     return fs, filtered_signal
