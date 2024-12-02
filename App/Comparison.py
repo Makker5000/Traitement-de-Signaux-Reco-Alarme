@@ -5,12 +5,14 @@ from scipy.signal import correlate, spectrogram, butter, filtfilt
 from scipy.io.wavfile import read
 from Processing import process
 from Analysis import extraire_son_hyper_hypo
+import os
 
 # -----------------------------------------------------
 # Assignation des chemins de fichiers des alarmes
 # -----------------------------------------------------
-alarme_hypo = "../Ressources/Sons-de-Ref/Son-Alarme-Hypo-Clean.wav"
-alarme_hyper = "../Ressources/Sons-de-Ref/Son-Alarme-Hyper-Clean.wav"
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # Base directory (Traitement-de-Signaux-Reco-Alarme)
+alarme_hypo = os.path.join(base_dir, "Ressources", "Sons-de-Ref", "Son-Alarme-Hypo-Clean.wav")
+alarme_hyper = os.path.join(base_dir, "Ressources", "Sons-de-Ref", "Son-Alarme-Hyper-Clean.wav")
 
 # On charge les fichiers audio
 def load_audio(filename):
