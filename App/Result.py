@@ -1,4 +1,3 @@
-from Comparison import runComparison
 from PIL import Image, ImageDraw, ImageFont
 import numpy as np
 
@@ -13,20 +12,17 @@ def generate_alarm_image(alarm_type):
     Args:
         alarm_type (str): Type d'alarme à afficher. 
                           Valeurs possibles :
-                          - "Hyperglycémie" : Affiche une flèche montante rouge/jaune.
-                          - "Hypoglycémie" : Affiche une flèche descendante bleu/vert.
-                          - Tout autre texte : Affiche une icône neutre et un fond gris.
+                          - "Hyperglycémie"
+                          - "Hypoglycémie"
+                          - Tout autre texte
 
     Détails :
         - **Hyperglycémie** :
             - Dégradé rouge → jaune.
-            - Flèche blanche pointant vers le haut.
         - **Hypoglycémie** :
             - Dégradé bleu → vert.
-            - Flèche blanche pointant vers le bas.
         - **Indéterminé** :
             - Fond gris uniforme.
-            - Icône "?" pour un état inconnu.
 
     Fonctionnement :
         1. Crée un fond avec un dégradé dynamique en fonction du type d'alarme.
@@ -49,18 +45,12 @@ def generate_alarm_image(alarm_type):
     if alarm_type == "Hyperglycémie":
         base_color_start = (255, 0, 0)  # Rouge
         base_color_end = (255, 255, 0)  # Jaune
-        # icon = "↑"  # Flèche montante pour Hyperglycémie
-        arrow_color = (255, 255, 255)  # Blanc pour la flèche
     elif alarm_type == "Hypoglycémie":
         base_color_start = (0, 0, 255)  # Bleu
         base_color_end = (0, 255, 0)  # Vert
-        # icon = "↓"  # Flèche descendante pour Hypoglycémie
-        arrow_color = (255, 255, 255)  # Blanc pour la flèche
     else:
         base_color_start = (169, 169, 169)  # Gris
         base_color_end = (169, 169, 169)  # Gris
-        # icon = "?"  # Icône neutre pour inconnu
-        arrow_color = (169, 169, 169)  # Gris pour une flèche neutre
 
     # Créer l'image avec un fond dégradé dynamique
     img = Image.new('RGB', (width, height))
@@ -85,14 +75,6 @@ def generate_alarm_image(alarm_type):
     # Déplacer la courbe vers le bas pour laisser de l'espace pour le texte
     text_area_offset = 100
     wave_offset = text_area_offset
-
-    # Ajouter une flèche stylisée
-    # if alarm_type == "Hyperglycémie":
-    #     draw.line((width // 2, wave_offset, width // 2, wave_offset - 50), fill=arrow_color, width=6)  # Tige de la flèche
-    #     draw.line([(width // 2 - 20, wave_offset - 50), (width // 2 + 20, wave_offset - 50)], fill=arrow_color, width=6)  # Bas de la flèche
-    # elif alarm_type == "Hypoglycémie":
-    #     draw.line((width // 2, wave_offset, width // 2, wave_offset + 50), fill=arrow_color, width=6)  # Tige de la flèche
-    #     draw.line([(width // 2 - 20, wave_offset + 50), (width // 2 + 20, wave_offset + 50)], fill=arrow_color, width=6)  # Bas de la flèche
 
     # Ajouter du texte pour le type d'alarme (avec fond pour la lisibilité)
     text = alarm_type
