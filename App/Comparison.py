@@ -1,10 +1,9 @@
 import numpy as np
 from scipy.fft import fft
 from scipy.spatial.distance import cosine, euclidean
-from scipy.signal import correlate, find_peaks, spectrogram, butter, filtfilt
-import matplotlib.pyplot as plt
+from scipy.signal import correlate, spectrogram, butter, filtfilt
 from scipy.io.wavfile import read
-from Processing import plot_signal_and_spectrogram, process
+from Processing import process
 from Analysis import extraire_son_hyper_hypo
 
 # -----------------------------------------------------
@@ -12,15 +11,6 @@ from Analysis import extraire_son_hyper_hypo
 # -----------------------------------------------------
 alarme_hypo = "../Ressources/Sons-de-Ref/Son-Alarme-Hypo-Clean.wav"
 alarme_hyper = "../Ressources/Sons-de-Ref/Son-Alarme-Hyper-Clean.wav"
-
-# alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Test/Son-Alarme-Hypo-bruit-Strident-derriere.wav"
-# alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-Alarme-Hypo-Clean.wav"
-# alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-Alarme-Hyper-Clean.wav"
-# alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Test/Son-Alarme-Hypo-Pitch-vers-le-Haut-100cents.wav"
-# alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Test/Hyper-discussion_1.wav"
-# alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Test/Hyper-chien.wav"
-# alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Test/Chien-qui-aboie.wav"
-# alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Test/Discussion-en-fond.wav"
 
 # On charge les fichiers audio
 def load_audio(filename):
@@ -462,26 +452,12 @@ def runComparison(rate_test, test_alarm):
         ValueError: Si les taux d'échantillonnage des signaux de référence et de test sont différents.
     """
     # Chargement des fichiers de sons d'alarme Hypo et Hyper
-    #r_hypo, a_hypo = load_audio(alarme_hypo)
-    #r_hyper, a_hyper = load_audio(alarme_hyper)
     r_filtre_hypo, a_filtre_hypo = process(alarme_hypo)
     r_filtre_hyper, a_filtre_hyper = process(alarme_hyper)
 
     rate_f_a_hypo, alarm_f_a_hypo = extraire_son_hyper_hypo(r_filtre_hypo, a_filtre_hypo)
     rate_f_a_hyper, alarm_f_a_hyper = extraire_son_hyper_hypo(r_filtre_hyper, a_filtre_hyper)
-    #rate_hypo, alarm_hypo = extraire_son_hyper_hypo(r_hypo, a_hypo)
-    #rate_hyper, alarm_hyper = extraire_son_hyper_hypo(r_hyper, a_hyper)
 
-    # fig, axes = plt.subplots(3, 2, figsize=(15, 10))
-    # plot_signal_and_spectrogram(r_hypo, a_hypo, "Original Hypo", axes[0, 0], axes[1, 0], axes[2, 0])
-    # plot_signal_and_spectrogram(rate_hypo, alarm_hypo, "filtre Hypo", axes[0, 1], axes[1, 1], axes[2, 1])
-    # plt.show()
-
-    # plot_signal_and_spectrogram(r_hyper, a_hyper, "Original Hyper", axes[0, 0], axes[1, 0], axes[2, 0])
-    # plot_signal_and_spectrogram(rate_hyper, alarm_hyper, "filtre Hyper", axes[0, 1], axes[1, 1], axes[2, 1])
-    # plt.show()
-
-    
     # Vérification des taux d'échantillonnage
     if rate_f_a_hypo != rate_f_a_hyper or rate_f_a_hypo != rate_test:
         raise ValueError("Les fichiers audio doivent avoir le même taux d'échantillonnage.")
