@@ -11,7 +11,7 @@
 
 ## Dépendances Python à installer
 
-Pour exécuter le script Python qui utilise les bibliothèques mentionnées ci-dessous, vous devez installer les dépendances suivantes. Voici également une courte description de leur utilité :
+Pour exécuter le script Python qui utilise les bibliothèques mentionnées ci-dessous, vous devez installer les dépendances suivantes. Voici également une courte description de leur utilité (N'hésitez pas à le faire depuis votre environnement virtuel):
 
 ### 1. **SciPy** (`scipy`)
 ```bash
