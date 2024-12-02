@@ -1,35 +1,38 @@
-"""
-Module de traitement et de filtrage de signaux audio.
-
-Ce module permet de :
-1. Ré-échantillonner un fichier audio à une fréquence cible.
-2. Appliquer un ou plusieurs filtres passe-bande à un signal.
-3. Traiter un fichier audio en combinant ces étapes et retourner le signal filtré.
-
-Dépendances :
-- numpy
-- scipy.signal (butter, filtfilt, resample_poly)
-- soundfile (sf)
-
-Fonctions :
-- resample_audio : Ré-échantillonne un signal audio à une fréquence cible.
-- apply_bandpass_filter : Applique un filtre passe-bande à un signal.
-- combine_bandpass_filters : Applique et combine plusieurs filtres passe-bande.
-- process_and_plot : Ré-échantillonne, filtre et retourne le signal filtré.
-"""
-
 import numpy as np
 from scipy.fft import fft, fftfreq
 from scipy.signal import butter, filtfilt, resample_poly, spectrogram
 import soundfile as sf
 import matplotlib.pyplot as plt
 
-
-"""
-TESSSSSSSSSSSSSSSSSSSSSST
-"""
-
 def plot_signal_and_spectrogram(fs, signal, title, ax_time, ax_freq, ax_spec):
+    """
+    Trace le signal dans le domaine temporel, son spectre fréquentiel et son spectrogramme.
+
+    Args:
+        fs (int): Fréquence d'échantillonnage du signal en Hz.
+        signal (numpy.ndarray): Signal audio à analyser.
+        title (str): Titre à afficher sur les graphiques.
+        ax_time (matplotlib.axes.Axes): Objet Axes de Matplotlib pour le graphique temporel.
+        ax_freq (matplotlib.axes.Axes): Objet Axes de Matplotlib pour le spectre fréquentiel.
+        ax_spec (matplotlib.axes.Axes): Objet Axes de Matplotlib pour le spectrogramme.
+
+    Comportement :
+        - Le graphique temporel affiche l'amplitude du signal en fonction du temps.
+        - Le spectre fréquentiel montre la magnitude de la Transformée de Fourier.
+        - Le spectrogramme visualise le contenu fréquentiel du signal en fonction du temps.
+
+    Returns:
+        None: La fonction modifie directement les objets Axes fournis pour afficher les graphiques.
+
+    Exemple:
+        >>> import matplotlib.pyplot as plt
+        >>> fig, (ax_time, ax_freq, ax_spec) = plt.subplots(3, 1, figsize=(10, 8))
+        >>> fs = 44100
+        >>> signal = np.sin(2 * np.pi * 440 * np.linspace(0, 1, fs))
+        >>> plot_signal_and_spectrogram(fs, signal, "Signal Exemple", ax_time, ax_freq, ax_spec)
+        >>> plt.tight_layout()
+        >>> plt.show()
+    """
     # Spectre temporel
     t = np.arange(len(signal)) / fs
     ax_time.plot(t, signal)
@@ -51,6 +54,36 @@ def plot_signal_and_spectrogram(fs, signal, title, ax_time, ax_freq, ax_spec):
     ax_spec.set_ylabel("Frequency (Hz)")
 
 def compute_fft(signal, rate, n_points=None):
+    """
+    Calcule la Transformée de Fourier rapide (FFT) d'un signal et retourne les fréquences associées et l'amplitude du spectre.
+
+    Args:
+        signal (numpy.ndarray): Signal à analyser, représenté comme un tableau 1D.
+        rate (int): Fréquence d'échantillonnage du signal en Hz.
+        n_points (int, optionnel): Nombre de points souhaités pour le calcul de la FFT. 
+            - Si le signal est plus long, il sera tronqué.
+            - Si le signal est plus court, il sera complété par des zéros (padding).
+            - Si `None`, la FFT est calculée sur la longueur du signal.
+
+    Returns:
+        tuple:
+            - numpy.ndarray: Tableau contenant les fréquences associées (uniquement la moitié positive du spectre).
+            - numpy.ndarray: Tableau contenant l'amplitude du spectre (uniquement la moitié positive du spectre).
+
+    Comportement:
+        - Si `n_points` est spécifié, ajuste la taille du signal avant de calculer la FFT.
+        - La moitié positive du spectre est retournée, car la FFT produit un spectre symétrique pour les signaux réels.
+
+    Exemple:
+        >>> import numpy as np
+        >>> from scipy.signal import chirp
+        >>> fs = 1000  # Fréquence d'échantillonnage
+        >>> t = np.linspace(0, 1, fs, endpoint=False)  # 1 seconde de signal
+        >>> signal = chirp(t, f0=10, f1=100, t1=1, method='linear')  # Signal chirp
+        >>> freqs, spectrum = compute_fft(signal, fs)
+        >>> print(freqs[:10])  # Affiche les 10 premières fréquences
+        >>> print(spectrum[:10])  # Affiche les 10 premières amplitudes
+    """
     # Ajustement de la longueur du signal (padding ou troncature)
     if n_points is not None:
         if len(signal) > n_points:
@@ -70,6 +103,33 @@ def compute_fft(signal, rate, n_points=None):
     return freqs[:len(freqs)//2], spectrum[:len(spectrum)//2]
 
 def align_spectra(ref_spectrum, test_spectrum, freqs_ref, freqs_test):
+    """
+    Aligne un spectre de test sur un spectre de référence en corrigeant les décalages de fréquence.
+
+    Args:
+        ref_spectrum (numpy.ndarray): Spectre de référence, contenant les amplitudes des fréquences.
+        test_spectrum (numpy.ndarray): Spectre de test, contenant les amplitudes des fréquences.
+        freqs_ref (numpy.ndarray): Tableau des fréquences associées au spectre de référence.
+        freqs_test (numpy.ndarray): Tableau des fréquences associées au spectre de test.
+
+    Returns:
+        numpy.ndarray: Spectre de test ajusté pour correspondre au spectre de référence.
+
+    Comportement :
+        - Identifie le pic principal dans chaque spectre.
+        - Calcule le ratio de décalage de fréquence entre les spectres.
+        - Applique une correction pour aligner les fréquences du spectre de test avec celles du spectre de référence.
+        - Utilise une interpolation linéaire pour ajuster les valeurs du spectre de test.
+
+    Exemple:
+        >>> import numpy as np
+        >>> ref_spectrum = np.array([0, 1, 3, 7, 5, 2, 1])  # Spectre de référence
+        >>> test_spectrum = np.array([0, 2, 6, 14, 10, 4, 2])  # Spectre de test décalé
+        >>> freqs_ref = np.linspace(0, 100, len(ref_spectrum))  # Fréquences associées à ref_spectrum
+        >>> freqs_test = np.linspace(0, 120, len(test_spectrum))  # Fréquences associées à test_spectrum
+        >>> adjusted_test_spectrum = align_spectra(ref_spectrum, test_spectrum, freqs_ref, freqs_test)
+        >>> print(adjusted_test_spectrum)
+    """
     # Identifiez le pic principal dans chaque spectre
     ref_peak_idx = np.argmax(ref_spectrum)
     test_peak_idx = np.argmax(test_spectrum)
@@ -86,9 +146,6 @@ def align_spectra(ref_spectrum, test_spectrum, freqs_ref, freqs_test):
         right=0,
     )
     return adjusted_test_spectrum
-"""
-FIN DE TEST
-"""
 
 def resample_audio(file_path, target_fs=44100):
     """
@@ -207,9 +264,9 @@ def process(file_path):
     # Appliquer les filtres
     filtered_signal = combine_bandpass_filters(signal, fs, lowcuts, highcuts)
 
-    fig, axes = plt.subplots(3, 2, figsize=(15, 10))
-    plot_signal_and_spectrogram(fs, signal, "Original Signal", axes[0, 0], axes[1, 0], axes[2, 0])
-    plot_signal_and_spectrogram(fs, filtered_signal, "Filtered Signal", axes[0, 1], axes[1, 1], axes[2, 1])
+    # fig, axes = plt.subplots(3, 2, figsize=(15, 10))
+    # plot_signal_and_spectrogram(fs, signal, "Original Signal", axes[0, 0], axes[1, 0], axes[2, 0])
+    # plot_signal_and_spectrogram(fs, filtered_signal, "Filtered Signal", axes[0, 1], axes[1, 1], axes[2, 1])
     
-    plt.show()
+    # plt.show()
     return fs, filtered_signal
