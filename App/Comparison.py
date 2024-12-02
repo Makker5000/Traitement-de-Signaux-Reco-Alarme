@@ -10,8 +10,8 @@ from Analysis import extraire_son_hyper_hypo
 # -----------------------------------------------------
 # Assignation des chemins de fichiers des alarmes
 # -----------------------------------------------------
-alarme_hypo = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-Alarme-Hypo-Clean.wav"
-alarme_hyper = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-Alarme-Hyper-Clean.wav"
+alarme_hypo = "../Ressources/Sons-de-Ref/Son-Alarme-Hypo-Clean.wav"
+alarme_hyper = "../Ressources/Sons-de-Ref/Son-Alarme-Hyper-Clean.wav"
 
 # alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Test/Son-Alarme-Hypo-bruit-Strident-derriere.wav"
 # alarme_test = "../Traitement-de-Signaux-Reco-Alarme/Ressources/Sons-de-Ref/Son-Alarme-Hypo-Clean.wav"
