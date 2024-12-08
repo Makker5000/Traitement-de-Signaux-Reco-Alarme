@@ -52,50 +52,6 @@ def compute_fft(signal, rate, n_points=None):
     #  L'élément à "//2" donc à la moitié n'est PAS inclus.
     return freqs[:len(freqs)//2], spectrum[:len(spectrum)//2]
 
-def align_spectra(ref_spectrum, test_spectrum, freqs_ref, freqs_test):
-    """
-    Aligne un spectre de test sur un spectre de référence en corrigeant les décalages de fréquence.
-
-    Args:
-        ref_spectrum (numpy.ndarray): Spectre de référence, contenant les amplitudes des fréquences.
-        test_spectrum (numpy.ndarray): Spectre de test, contenant les amplitudes des fréquences.
-        freqs_ref (numpy.ndarray): Tableau des fréquences associées au spectre de référence.
-        freqs_test (numpy.ndarray): Tableau des fréquences associées au spectre de test.
-
-    Returns:
-        numpy.ndarray: Spectre de test ajusté pour correspondre au spectre de référence.
-
-    Comportement :
-        - Identifie le pic principal dans chaque spectre.
-        - Calcule le ratio de décalage de fréquence entre les spectres.
-        - Applique une correction pour aligner les fréquences du spectre de test avec celles du spectre de référence.
-        - Utilise une interpolation linéaire pour ajuster les valeurs du spectre de test.
-
-    Exemple:
-        >>> import numpy as np
-        >>> ref_spectrum = np.array([0, 1, 3, 7, 5, 2, 1])  # Spectre de référence
-        >>> test_spectrum = np.array([0, 2, 6, 14, 10, 4, 2])  # Spectre de test décalé
-        >>> freqs_ref = np.linspace(0, 100, len(ref_spectrum))  # Fréquences associées à ref_spectrum
-        >>> freqs_test = np.linspace(0, 120, len(test_spectrum))  # Fréquences associées à test_spectrum
-        >>> adjusted_test_spectrum = align_spectra(ref_spectrum, test_spectrum, freqs_ref, freqs_test)
-        >>> print(adjusted_test_spectrum)
-    """
-    # Identifiez le pic principal dans chaque spectre
-    ref_peak_idx = np.argmax(ref_spectrum)
-    test_peak_idx = np.argmax(test_spectrum)
-    
-    # Trouvez le ratio de décalage de fréquence
-    shift_ratio = freqs_test[test_peak_idx] / freqs_ref[ref_peak_idx]
-
-    # Appliquez la correction sur le spectre de test
-    adjusted_test_spectrum = np.interp(
-        freqs_ref,  # Fréquences de référence
-        freqs_test / shift_ratio,  # Décalage des fréquences
-        test_spectrum,
-        left=0,
-        right=0,
-    )
-    return adjusted_test_spectrum
 
 def resample_audio(file_path, target_fs=44100):
     """
@@ -207,7 +163,7 @@ def process(file_path):
    
 
 
-    # Définir les bandes de fréquences
+    # Définir les bandes de fréquences à prendre en compte 
     lowcuts = [3900.0, 4200.0, 4470.0, 4830.0, 5145.0]
     highcuts = [3950.0, 4250.0, 4520.0, 4880.0, 5300.0]
 
